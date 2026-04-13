@@ -37,6 +37,7 @@ def _build_prompt(agent: dict, agents_at_loc: list[dict], resource_state: dict[s
 
     unanswered_message = None
     mem_lines = []
+    social_memories = []
     for m in memories:
         status = ""
         if m.get("is_unanswered"):
@@ -45,9 +46,13 @@ def _build_prompt(agent: dict, agents_at_loc: list[dict], resource_state: dict[s
         
         if "said:" in m["event"] or "Spoke to" in m["event"]:
             line = f"- (Tick {m['tick']}) [SOCIAL]{status} {m['event']}"
+            social_memories.append(line)
         else:
             line = f"- (Tick {m['tick']}){status} {m['event']}"
         mem_lines.append(line)
+    
+    # Highlight social context
+    social_context = "\n".join(social_memories) if social_memories else "No recent conversations."
     mem_text = "\n".join(mem_lines) or "None yet."
 
     others = [a for a in agents_at_loc if a["id"] != agent["id"]]
@@ -83,7 +88,11 @@ def _build_prompt(agent: dict, agents_at_loc: list[dict], resource_state: dict[s
 
     mandatory_reply_instruction = ""
     if unanswered_message:
-        mandatory_reply_instruction = f"\n\nCRITICAL: {unanswered_message} was just said to you. You MUST respond in this tick using the TALK action. After responding, decide if you wish to CONTINUE the conversation or END it."
+        mandatory_reply_instruction = f"\n\nCRITICAL: {unanswered_message} was just said to you. Social harmony is key. You MUST respond in this tick using the TALK action to the correct target. If you are too hungry/tired to talk, at least acknowledge them briefly before leaving."
+
+    social_urge = ""
+    if agent['community'] < 4:
+        social_urge = "\n\nURGENT: Your Community level is dangerously low. You are feeling isolated. Seek out others and speak with them to restore your spirit."
 
     return f"""You are {agent['name']}, an autonomous agent in {ENV.name}.
 
@@ -102,10 +111,13 @@ WHO IS HERE: {others_text}
 WORLD RESOURCES:
 {resources_text}
 
+CONVERSATION CONTEXT:
+{social_context}
+
 RECENT MEMORIES (Most recent at top):
 {mem_text}
 
-MISSION: Survive and build a society. {path_instruction}{mandatory_reply_instruction}
+MISSION: Survive and build a society. {path_instruction}{mandatory_reply_instruction}{social_urge}
 
 AVAILABLE ACTIONS:
   {skill_lines_text}
@@ -203,8 +215,11 @@ def tick() -> int:
     alive = STORAGE.get_agents()
     for a in alive:
         companions = [x for x in alive if x["id"] != a["id"] and x["location"] == a["location"]]
-        if not companions:
+        if not companions and new_tick % 4 == 0:
             STORAGE.update_agent(a["id"], community=max(0, a["community"] - 1))
+        elif companions:
+             # Reward proximity
+             STORAGE.update_agent(a["id"], community=min(MAX_STAT_VALUE, a["community"] + 1))
 
     # Starvation check
     dead_list = STORAGE.kill_starved_agents()

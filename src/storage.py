@@ -263,19 +263,12 @@ class SQLiteBackend(StorageBackend):
     def tick_decay(self) -> None:
         conn = get_conn()
         with conn:
-            # Slower hunger decay (0.5 average per tick, handled via modulo or simple reduction)
-            # For simplicity, we'll keep it at -1 but increase the max stats or add a logic here.
-            # Actually, standardizing on a fractional decay or skipping ticks is better.
-            # Let's use a random chance or just reduce specific stats.
-            
-            # Reduce hunger and energy by 1 every tick is too fast. 
-            # We'll make hunger decay 1 every 2 ticks (approx).
             new_tick = conn.execute("SELECT tick FROM world WHERE id=1").fetchone()["tick"]
             
-            if new_tick % 2 == 0:
+            # Slower decay: Hunger every 3 ticks, Energy every 2 ticks (offset)
+            if new_tick % 3 == 0:
                 conn.execute("UPDATE agents SET hunger=MAX(0,hunger-1) WHERE alive=1")
             
-            # Energy only decays if NOT at shelter, and also slower.
             if new_tick % 2 == 1:
                 conn.execute(
                     "UPDATE agents SET energy=MAX(0,energy-1) WHERE alive=1 AND location!='shelter' AND location!='fire_pit'"

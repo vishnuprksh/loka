@@ -10,6 +10,7 @@ No other file needs to change for discovery and prompting.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from .config import DEFAULT_BERRY_MAX, DEFAULT_BERRY_REGEN, DEFAULT_BERRY_YIELD, DEFAULT_BERRY_HUNGER
 
 
 @dataclass
@@ -91,11 +92,11 @@ THE_GROVE = Environment(
     resources={
         "berry": Resource(
             name="berry",
-            max_count=10,
-            regen_per_tick=1,
+            max_count=DEFAULT_BERRY_MAX,
+            regen_per_tick=DEFAULT_BERRY_REGEN,
             harvest_locations=["berry_bush"],
-            harvest_yield=1,
-            hunger_value=3,
+            harvest_yield=DEFAULT_BERRY_YIELD,
+            hunger_value=DEFAULT_BERRY_HUNGER,
             icon="🫐",
         ),
     },

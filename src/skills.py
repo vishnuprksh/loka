@@ -19,6 +19,8 @@ if TYPE_CHECKING:
     from .environment import Environment
     from .storage import StorageBackend
 
+from .config import MAX_STAT_VALUE, ENERGY_GAIN_SHELTER, ENERGY_GAIN_ANYWHERE
+
 
 class Skill(ABC):
     """Base class for all agent actions.
@@ -159,7 +161,7 @@ class EatSkill(Skill):
                 storage.update_agent(
                     agent["id"],
                     inventory=json.dumps(inventory),
-                    hunger=min(20, agent["hunger"] + res.hunger_value),
+                    hunger=min(MAX_STAT_VALUE, agent["hunger"] + res.hunger_value),
                 )
                 storage.add_memory(agent["id"], tick, f"Ate {item} {res.icon} — hunger relieved")
                 storage.add_chronicle(
@@ -176,8 +178,8 @@ class SleepSkill(Skill):
         return True  # Always valid
 
     def execute(self, agent, target, message, agents, resource_state, env, tick, storage) -> None:
-        gain = 10 if agent["location"] == "shelter" else 4
-        storage.update_agent(agent["id"], energy=min(20, agent["energy"] + gain))
+        gain = ENERGY_GAIN_SHELTER if agent["location"] == "shelter" else ENERGY_GAIN_ANYWHERE
+        storage.update_agent(agent["id"], energy=min(MAX_STAT_VALUE, agent["energy"] + gain))
         storage.add_memory(agent["id"], tick, f"Rested at {agent['location']} (+{gain} energy)")
         storage.add_chronicle(
             tick,

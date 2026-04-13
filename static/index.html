@@ -139,7 +139,7 @@
     .stat { display: flex; flex-direction: column; align-items: center; }
     .stat-label { font-size: .55rem; color: var(--muted); text-transform: uppercase; }
     .stat-bar {
-      width: 44px; height: 5px;
+      width: 60px; height: 5px;
       background: var(--border); border-radius: 3px;
       margin-top: 3px; overflow: hidden;
     }
@@ -474,16 +474,16 @@ function drawSpeechBubble(x, y, text, ticks) {
   ctx.save();
   ctx.globalAlpha = alpha;
   
-  const padding = 8;
-  const fontSize = 12;
+  const padding = 6;
+  const fontSize = 9;
   ctx.font = `${fontSize}px monospace`;
   
   // Wrap/truncate text
-  const maxWidth = 180;
+  const maxWidth = 220;
   const metrics = ctx.measureText(text);
   let displayContent = text;
   if (metrics.width > maxWidth) {
-     displayContent = text.slice(0, 25) + "...";
+     displayContent = text.slice(0, 45) + "...";
   }
   
   const w = Math.min(maxWidth + padding * 2, ctx.measureText(displayContent).width + padding * 2);
@@ -494,9 +494,9 @@ function drawSpeechBubble(x, y, text, ticks) {
   // Rounded bubble background
   ctx.fillStyle = "rgba(22, 27, 34, 0.95)";
   ctx.strokeStyle = "#58a6ff";
-  ctx.lineWidth = 1.5;
+  ctx.lineWidth = 1;
   
-  const r = 8;
+  const r = 4;
   ctx.beginPath();
   ctx.moveTo(bx + r, by);
   ctx.lineTo(bx + w - r, by);
@@ -567,10 +567,12 @@ function renderAgents(agents) {
 }
 
 function statBar(label, val, cls) {
+  // val is out of 10. we want percent for the style="width:XX%"
+  const pct = Math.min(100, (val / 10) * 100);
   return `<div class="stat">
     <span class="stat-label">${label}</span>
-    <div class="stat-bar"><div class="stat-fill ${cls}" style="width:${val * 5}%"></div></div>
-    <span class="stat-num">${val}/20</span>
+    <div class="stat-bar"><div class="stat-fill ${cls}" style="width:${pct}%"></div></div>
+    <span class="stat-num">${val}/10</span>
   </div>`;
 }
 

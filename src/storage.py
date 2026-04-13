@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from .environment import Environment
 
 from .db import get_conn
+from .config import MAX_STAT_VALUE, MEMORY_WINDOW_LIMIT, CHRONICLE_LIMIT
 
 
 class StorageBackend(ABC):
@@ -63,7 +64,7 @@ class StorageBackend(ABC):
     # ---- Memories --------------------------------------------------------------
 
     @abstractmethod
-    def get_recent_memories(self, agent_id: str, limit: int = 15) -> list[dict]: ...
+    def get_recent_memories(self, agent_id: str, limit: int = MEMORY_WINDOW_LIMIT) -> list[dict]: ...
 
     @abstractmethod
     def add_memory(
@@ -79,7 +80,7 @@ class StorageBackend(ABC):
     # ---- Chronicle -------------------------------------------------------------
 
     @abstractmethod
-    def get_chronicle(self, limit: int = 30) -> list[dict]: ...
+    def get_chronicle(self, limit: int = CHRONICLE_LIMIT) -> list[dict]: ...
 
     @abstractmethod
     def add_chronicle(
@@ -152,9 +153,10 @@ class SQLiteBackend(StorageBackend):
                    (id, name, greed, sociability, curiosity, path,
                     hunger, energy, community, location, inventory,
                     alive, created_tick, last_thought)
-                   VALUES (?, ?, ?, ?, ?, ?, 15, 20, 10, 'fire_pit', '[]', 1,
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'fire_pit', '[]', 1,
                            (SELECT tick FROM world WHERE id=1), '')""",
-                (agent_id, name, round(greed, 2), round(sociability, 2), round(curiosity, 2), path),
+                (agent_id, name, round(greed, 2), round(sociability, 2), round(curiosity, 2), path,
+                 MAX_STAT_VALUE, MAX_STAT_VALUE, MAX_STAT_VALUE // 2),
             )
         conn.close()
 
@@ -195,7 +197,7 @@ class SQLiteBackend(StorageBackend):
 
     # ---- Memories --------------------------------------------------------------
 
-    def get_recent_memories(self, agent_id: str, limit: int = 15) -> list[dict]:
+    def get_recent_memories(self, agent_id: str, limit: int = MEMORY_WINDOW_LIMIT) -> list[dict]:
         conn = get_conn()
         rows = conn.execute(
             "SELECT tick, event, target, message, is_unanswered FROM memories "
@@ -224,7 +226,7 @@ class SQLiteBackend(StorageBackend):
 
     # ---- Chronicle -------------------------------------------------------------
 
-    def get_chronicle(self, limit: int = 30) -> list[dict]:
+    def get_chronicle(self, limit: int = CHRONICLE_LIMIT) -> list[dict]:
         conn = get_conn()
         rows = conn.execute(
             "SELECT tick, entry FROM chronicle ORDER BY tick DESC LIMIT ?", (limit,)

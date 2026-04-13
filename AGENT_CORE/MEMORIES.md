@@ -1,4 +1,14 @@
 # Strategic Memories
+### 2026-04-13 - Modularized Simulation Constants
+- **Context:** User requested lowering max stats from 20 to 10 and requested a modular way to manage these values.
+- **Decision:** Created `src/config.py` to hold simulation-wide constants (MAX_STAT_VALUE, thresholds, resource defaults).
+- **Reasoning:** Hardcoding magic numbers across multiple files makes balancing difficult. Centralizing these in a config module allows for rapid iteration and ensures consistency between the backend state, LLM prompts, and frontend visualization.
+
+### 2026-04-13 - Increased Scarcity to Drive Competition
+- **Context:** Previous reduction to 10 berries was still slightly too abundant for high-tension social dynamics.
+- **Decision:** Reduced berry `max_count` further (10 -> 6).
+- **Reasoning:** Extremely limited resources force agents to either coordinate strictly or compete aggressively, highlighting their sociability and greed traits more effectively.
+
 ### 2026-04-13 - Reduced Resource Abundance to Drive Social Interaction
 - **Context:** Observed that survival being "too easy" led to reduced social interaction as agents became self-sufficient.
 - **Decision:** Reduced berry `max_count` (20 -> 10) and `harvest_yield` (2 -> 1). Updated frontend to show inventory counts (e.g., "berry x5") to better visualize scale.

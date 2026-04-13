@@ -13,8 +13,12 @@ from concurrent.futures import ThreadPoolExecutor
 from .environment import THE_GROVE, Environment
 from .skills import SKILL_REGISTRY, SkillRegistry
 from .storage import SQLiteBackend, StorageBackend
+from .config import (
+    MAX_STAT_VALUE, HUNGER_THRESHOLD_LOW, ENERGY_THRESHOLD_LOW,
+    MEMORY_WINDOW_LIMIT, DEFAULT_TICK_INTERVAL
+)
 
-TICK_INTERVAL = int(os.getenv("TICK_INTERVAL", "5"))
+TICK_INTERVAL = int(os.getenv("TICK_INTERVAL", str(DEFAULT_TICK_INTERVAL)))
 
 # ---------------------------------------------------------------------------
 # Module-level singletons.  Replace these in tests or alternative configs.
@@ -29,7 +33,7 @@ STORAGE: StorageBackend = SQLiteBackend()
 # ------------------------------------------------------------------
 def _build_prompt(agent: dict, agents_at_loc: list[dict], resource_state: dict[str, int]) -> str:
     inventory = json.loads(agent["inventory"])
-    memories = STORAGE.get_recent_memories(agent["id"], limit=20)
+    memories = STORAGE.get_recent_memories(agent["id"], limit=MEMORY_WINDOW_LIMIT)
 
     unanswered_message = None
     mem_lines = []
@@ -86,9 +90,9 @@ TRAITS: Greed={agent['greed']:.1f}, Sociability={agent['sociability']:.1f}, Curi
 PATH: {agent.get('path', 'Survivor')}
 
 STATE:
-- Hunger:    {agent['hunger']}/20  (eat if below 6!)
-- Energy:    {agent['energy']}/20  (sleep if below 4!)
-- Community: {agent['community']}/20
+- Hunger:    {agent['hunger']}/{MAX_STAT_VALUE}  (eat if below {HUNGER_THRESHOLD_LOW}!)
+- Energy:    {agent['energy']}/{MAX_STAT_VALUE}  (sleep if below {ENERGY_THRESHOLD_LOW}!)
+- Community: {agent['community']}/{MAX_STAT_VALUE}
 - Location:  {agent['location']}
 - Inventory: {inventory if inventory else 'empty'}
 

@@ -61,7 +61,8 @@ async def simulation_loop() -> None:
 # ------------------------------------------------------------------ #
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    init_db(THE_GROVE)
+    # Clear and re-seed the DB on every startup
+    reset_db(THE_GROVE)
     seed_default_agents()
     asyncio.create_task(simulation_loop())
     yield

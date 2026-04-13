@@ -14,6 +14,7 @@
   - [x] Observer Portal Frontend (static/index.html)
   - [x] Server running — agents surviving autonomously at tick 37+
   - [x] Parallelized LLM calls to handle Latency vs. Tick drift
+  - [x] Clear DB on every startup for clean simulation runs
 
 - [ ] **Phase 3: Modular Architecture (Phase 1 complete)**
   - [x] `src/environment.py` — `Location`, `Resource`, `Environment`, `THE_GROVE`
@@ -39,4 +40,4 @@
 ---
 
 ## 🚧 Blockers
-- None currently. Initializing project structure.
+- None. Fixed 2D chat bubble synchronization logic.

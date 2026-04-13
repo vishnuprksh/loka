@@ -152,7 +152,7 @@ class SQLiteBackend(StorageBackend):
                    (id, name, greed, sociability, curiosity, path,
                     hunger, energy, community, location, inventory,
                     alive, created_tick, last_thought)
-                   VALUES (?, ?, ?, ?, ?, ?, 8, 10, 6, 'fire_pit', '[]', 1,
+                   VALUES (?, ?, ?, ?, ?, ?, 15, 20, 10, 'fire_pit', '[]', 1,
                            (SELECT tick FROM world WHERE id=1), '')""",
                 (agent_id, name, round(greed, 2), round(sociability, 2), round(curiosity, 2), path),
             )
@@ -256,10 +256,23 @@ class SQLiteBackend(StorageBackend):
     def tick_decay(self) -> None:
         conn = get_conn()
         with conn:
-            conn.execute("UPDATE agents SET hunger=MAX(0,hunger-1) WHERE alive=1")
-            conn.execute(
-                "UPDATE agents SET energy=MAX(0,energy-1) WHERE alive=1 AND location!='shelter'"
-            )
+            # Slower hunger decay (0.5 average per tick, handled via modulo or simple reduction)
+            # For simplicity, we'll keep it at -1 but increase the max stats or add a logic here.
+            # Actually, standardizing on a fractional decay or skipping ticks is better.
+            # Let's use a random chance or just reduce specific stats.
+            
+            # Reduce hunger and energy by 1 every tick is too fast. 
+            # We'll make hunger decay 1 every 2 ticks (approx).
+            new_tick = conn.execute("SELECT tick FROM world WHERE id=1").fetchone()["tick"]
+            
+            if new_tick % 2 == 0:
+                conn.execute("UPDATE agents SET hunger=MAX(0,hunger-1) WHERE alive=1")
+            
+            # Energy only decays if NOT at shelter, and also slower.
+            if new_tick % 2 == 1:
+                conn.execute(
+                    "UPDATE agents SET energy=MAX(0,energy-1) WHERE alive=1 AND location!='shelter' AND location!='fire_pit'"
+                )
         conn.close()
 
     def kill_starved_agents(self) -> list[dict]:

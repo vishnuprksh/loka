@@ -475,17 +475,18 @@ function drawSpeechBubble(x, y, text, ticks) {
   ctx.globalAlpha = alpha;
   
   const padding = 8;
-  const fontSize = 14;
+  const fontSize = 12;
   ctx.font = `${fontSize}px monospace`;
   
   // Wrap/truncate text
   const maxWidth = 180;
+  const metrics = ctx.measureText(text);
   let displayContent = text;
-  if (ctx.measureText(text).width > maxWidth) {
+  if (metrics.width > maxWidth) {
      displayContent = text.slice(0, 25) + "...";
   }
   
-  const w = Math.min(maxWidth, metrics.width + padding * 2);
+  const w = Math.min(maxWidth + padding * 2, ctx.measureText(displayContent).width + padding * 2);
   const h = fontSize + padding * 2;
   const bx = x - w / 2;
   const by = y - h - 10;
@@ -591,8 +592,8 @@ function applyState(s) {
   activeBubbles = activeBubbles.filter(b => b.ticks > 0);
   
   // Check for new talk events in chronicle
-  const newTalks = s.chronicle.filter(e => e.tick === s.tick && e.entry.includes('💬'));
-  newTalks.forEach(t => {
+  const currentTickTalks = s.chronicle.filter(e => e.tick === s.tick && e.entry.includes('💬'));
+  currentTickTalks.forEach(t => {
      // Format in src/skills.py: 💬 [Agent] → [Target]: "[Message]"
      const talkRegex = /💬\s+(.*?)\s+→\s+(.*?):\s+"(.*)"/;
      const match = t.entry.match(talkRegex);
@@ -603,9 +604,9 @@ function applyState(s) {
         const existing = activeBubbles.find(b => b.name === name);
         if (existing) {
            existing.msg = msg;
-           existing.ticks = 20; // Last for 20 simulation ticks
+           existing.ticks = 15; // Last for 15 simulation ticks
         } else {
-           activeBubbles.push({ name: name, msg: msg, ticks: 20 });
+           activeBubbles.push({ name: name, msg: msg, ticks: 15 });
         }
      }
   });

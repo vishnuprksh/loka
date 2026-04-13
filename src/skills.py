@@ -159,7 +159,7 @@ class EatSkill(Skill):
                 storage.update_agent(
                     agent["id"],
                     inventory=json.dumps(inventory),
-                    hunger=min(10, agent["hunger"] + res.hunger_value),
+                    hunger=min(20, agent["hunger"] + res.hunger_value),
                 )
                 storage.add_memory(agent["id"], tick, f"Ate {item} {res.icon} — hunger relieved")
                 storage.add_chronicle(
@@ -170,14 +170,14 @@ class EatSkill(Skill):
 
 class SleepSkill(Skill):
     name = "SLEEP"
-    prompt_description = "SLEEP      — rest; +5 energy at shelter, +2 anywhere"
+    prompt_description = "SLEEP      — rest; +10 energy at shelter, +4 anywhere"
 
     def validate(self, agent, target, message, agents, resource_state, env) -> bool:
         return True  # Always valid
 
     def execute(self, agent, target, message, agents, resource_state, env, tick, storage) -> None:
-        gain = 5 if agent["location"] == "shelter" else 2
-        storage.update_agent(agent["id"], energy=min(10, agent["energy"] + gain))
+        gain = 10 if agent["location"] == "shelter" else 4
+        storage.update_agent(agent["id"], energy=min(20, agent["energy"] + gain))
         storage.add_memory(agent["id"], tick, f"Rested at {agent['location']} (+{gain} energy)")
         storage.add_chronicle(
             tick,
@@ -218,8 +218,8 @@ class TalkSkill(Skill):
             conn.execute("UPDATE memories SET is_unanswered=0 WHERE agent_id=?", (agent["id"],))
         conn.close()
 
-        storage.update_agent(agent["id"], community=min(10, agent["community"] + 2))
-        storage.update_agent(tgt["id"], community=min(10, tgt["community"] + 1))
+        storage.update_agent(agent["id"], community=min(20, agent["community"] + 2))
+        storage.update_agent(tgt["id"], community=min(20, tgt["community"] + 1))
         
         # Add memory for the speaker
         storage.add_memory(

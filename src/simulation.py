@@ -86,9 +86,9 @@ TRAITS: Greed={agent['greed']:.1f}, Sociability={agent['sociability']:.1f}, Curi
 PATH: {agent.get('path', 'Survivor')}
 
 STATE:
-- Hunger:    {agent['hunger']}/10  (eat if below 4!)
-- Energy:    {agent['energy']}/10  (sleep if below 2!)
-- Community: {agent['community']}/10
+- Hunger:    {agent['hunger']}/20  (eat if below 6!)
+- Energy:    {agent['energy']}/20  (sleep if below 4!)
+- Community: {agent['community']}/20
 - Location:  {agent['location']}
 - Inventory: {inventory if inventory else 'empty'}
 

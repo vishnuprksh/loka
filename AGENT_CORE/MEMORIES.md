@@ -1,3 +1,14 @@
+# Strategic Memories
+### 2026-04-13 - Relaxed Agent Survival Stats
+- **Context:** Agents were overly focused on survival (hunger/energy) due to rapid stat depletion, stifling social interaction.
+- **Decision:** Doubled max stats (10 -> 20), halved decay frequency (tick-based logic), and updated prompt thresholds.
+- **Reasoning:** Increasing the "buffer" give agents more mental space to pursue social and path-related goals (Merchant/Scholar/Leader) without immediate fear of death.
+
+### 2026-04-13 - Clear DB on Startup
+- **Context:** Fresh simulation runs are preferred for testing and observation.
+- **Decision:** Replaced `init_db` with `reset_db` in `main.py` lifespan.
+- **Reasoning:** Ensures every server start begins at Tick 0 with fresh agents, preventing accumulated state from polluting new observation sessions.
+
 ### [2026-04-13] - Removed Fallback Logic
 - **Context:** User felt fallback heuristics "spoiled the fun" of AI autonomy.
 - **Decision:** Entirely removed `_smart_fallback` from `src/llm.py`.

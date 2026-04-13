@@ -265,16 +265,11 @@ class SQLiteBackend(StorageBackend):
     def tick_decay(self) -> None:
         conn = get_conn()
         with conn:
-            new_tick = conn.execute("SELECT tick FROM world WHERE id=1").fetchone()["tick"]
-            
-            # Slower decay: Hunger every 3 ticks, Energy every 2 ticks (offset)
-            if new_tick % 3 == 0:
-                conn.execute("UPDATE agents SET hunger=MAX(0,hunger-1) WHERE alive=1")
-            
-            if new_tick % 2 == 1:
-                conn.execute(
-                    "UPDATE agents SET energy=MAX(0,energy-1) WHERE alive=1 AND location!='shelter' AND location!='fire_pit'"
-                )
+            # Stats decay by 1 EVERY tick as requested
+            conn.execute("UPDATE agents SET hunger=MAX(0,hunger-1) WHERE alive=1")
+            conn.execute(
+                "UPDATE agents SET energy=MAX(0,energy-1) WHERE alive=1 AND location!='shelter' AND location!='fire_pit'"
+            )
 
         conn.close()
 

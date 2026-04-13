@@ -1,4 +1,14 @@
 # Strategic Memories
+### 2026-04-13 - Global Death Notifications
+- **Context:** Previously, when an agent died, it was only recorded in the system chronicle. Other agents remained unaware unless they were at the same location (and even then, only via vague history).
+- **Decision:** Modified [src/simulation.py](src/simulation.py) to broadcast a "perished" memory to all surviving agents whenever an agent dies.
+- **Reasoning:** Global awareness of death creates a sense of mortality and urgency in the survivors. It allows them to reflect on the loss of their peers and adjusts their survival priorities without needing to find the body.
+
+### 2026-04-13 - Increased Stat Decay Frequency
+- **Context:** User requested that hunger and energy decrease by 1 on every single tick.
+- **Decision:** Modified [src/storage.py](src/storage.py) to remove the modulo-based slower decay and instead apply a -1 update to all living agents every tick.
+- **Reasoning:** Increasing the decay rate makes survival significantly more challenging, forcing agents to prioritize foraging and resting more frequently, and likely increasing the frequency of social resource requests earlier in their life cycles.
+
 ### 2026-04-13 - State Bar Renaming for Prompt Clarity
 - **Context:** Agents (e.g., Dax) were confused by "Hunger: 9/10," thinking it meant they were 90% hungry rather than 90% full.
 - **Decision:** Renamed prompt labels to "Energy/Fullness" and "Rest/Vigor" with explicit 0=STARVING/EXHAUSTED and 10=FULL/RESTED indicators.

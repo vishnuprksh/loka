@@ -28,7 +28,7 @@
   - [ ] Phase 3: Selective WebSocket broadcast
 
 - [ ] **Phase 4: Social & Interaction Layer**
-  - [x] Balanced survival stats to encourage social interaction (Stats max 20, slower decay)
+  - [x] Balanced survival stats to encourage social interaction (Stats max 20, **Decay: 1 per tick**)
   - [x] Reduced berry availability to increase scarcity and drive interaction
   - [x] Implementation of Hunger/Energy cross-decay (bar <= 3)
   - [x] Mandatory communication for food sharing (Restricted `GIVE_BERRY` to verbal requests only)

@@ -243,7 +243,13 @@ def tick() -> int:
     # Starvation check
     dead_list = STORAGE.kill_starved_agents()
     for d in dead_list:
-        STORAGE.add_chronicle(new_tick, f"💀 {d['name']} has perished (starvation)", "DEATH", d["id"])
+        death_msg = f"💀 {d['name']} has perished (starvation)"
+        STORAGE.add_chronicle(new_tick, death_msg, "DEATH", d["id"])
+        
+        # Broadcast death memory to all surviving agents
+        survivors = STORAGE.get_agents(alive_only=True)
+        for s in survivors:
+            STORAGE.add_memory(s["id"], new_tick, death_msg)
 
     # Tick summary log
     alive_agents = STORAGE.get_agents()

@@ -1,9 +1,8 @@
-### [2026-04-13] - Phase 1 Modular Architecture Implemented
-- **Context:** User wanted modularity so adding resources/skills doesn't require core changes
-- **Decision:** Three new modules: `environment.py` (config), `storage.py` (DB abstraction), `skills.py` (pluggable actions)
-- **Reasoning:** Single responsibility — `simulation.py` tick loop never changes when resources or skills are added; `THE_GROVE` in `environment.py` is the single place to extend the world; `SKILL_REGISTRY` in `skills.py` is the single place to add actions
-- **DB change:** Replaced hardcoded `world.berry_count` with generic `world_resources` table (name, count, max_count); existing `loka.db` auto-migrates on `reset_db(THE_GROVE)` call
-- **Compat:** Frontend `berry_count` key preserved in `get_state_dict()`; new `resources` dict also available
+### [2026-04-13] - Removed Fallback Logic
+- **Context:** User felt fallback heuristics "spoiled the fun" of AI autonomy.
+- **Decision:** Entirely removed `_smart_fallback` from `src/llm.py`.
+- **Reasoning:** In line with the "Zero-Touch Autonomy" principle, agents should only act based on LLM decisions. If the API fails or is missing, agents now `DO_NOTHING` to avoid breaking the simulation with hardcoded "magic" behavior.
+- **Result:** Pure LLM-driven simulation. If `OPENROUTER_API_KEY` is missing, agents freeze with a "No API key" thought.
 
 ### 2026-04-13 - Project Inception
 - **Context:** User wants to build a virtual world ("Loka") where AI agents and humans interact to form a society.

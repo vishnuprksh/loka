@@ -5,6 +5,7 @@ import json
 import os
 import uuid
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 
 from .db import get_conn, _lock
 
@@ -68,11 +69,29 @@ def _add_memory(agent_id: str, tick: int, event: str) -> None:
     conn.close()
 
 
-def _add_chronicle(tick: int, entry: str) -> None:
+def _add_chronicle(tick: int, entry: str, event_type: str = "AGENT_ACTION", agent_id: str = "SYSTEM") -> None:
+    """Add an entry to the database chronicle and the file log."""
     conn = get_conn()
     with conn:
         conn.execute("INSERT INTO chronicle (tick, entry) VALUES (?, ?)", (tick, entry))
     conn.close()
+    
+    # Also log to file with detailed format
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    log_line = f"[{timestamp}] | [{tick}] | {event_type} | {agent_id} | {entry}\n"
+    
+    try:
+        with open("chronicle.log", "a") as f:
+            f.write(log_line)
+    except Exception as e:
+        print(f"Warning: Could not write to chronicle.log: {e}")
+
+
+def _log_to_file(tick: int, agents: list[dict], berry_count: int) -> None:
+    """Append a tick summary to chronicle.log file."""
+    alive_count = len([a for a in agents if a["alive"]])
+    _add_chronicle(tick, f"Agents alive: {alive_count}, Berries: {berry_count}", "TICK_SUMMARY", "SYSTEM")
+
 
 
 # ------------------------------------------------------------------
@@ -146,7 +165,7 @@ def _apply_action(
                     (target, agent["id"]),
                 )
             _add_memory(agent["id"], tick, f"Moved to {target}")
-            _add_chronicle(tick, f"{agent['name']} walked to {target.replace('_',' ')}")
+            _add_chronicle(tick, f"{agent['name']} walked to {target.replace('_',' ')}", "MOVE", agent['id'])
 
         # ---- FORAGE ----
         elif action == "FORAGE" and agent["location"] == "berry_bush" and agent["energy"] > 0:
@@ -163,7 +182,7 @@ def _apply_action(
                         (actual,),
                     )
                 _add_memory(agent["id"], tick, f"Foraged {actual} berries 🫐")
-                _add_chronicle(tick, f"{agent['name']} foraged {actual} berries 🫐")
+                _add_chronicle(tick, f"{agent['name']} foraged {actual} berries 🫐", "FORAGE", agent['id'])
 
         # ---- EAT ----
         elif action == "EAT" and "berry" in inventory:
@@ -174,6 +193,7 @@ def _apply_action(
                     (json.dumps(inventory), agent["id"]),
                 )
             _add_memory(agent["id"], tick, "Ate a berry — hunger relieved")
+            _add_chronicle(tick, f"{agent['name']} is eating a berry 🫐", "EAT", agent['id'])
 
         # ---- SLEEP ---- (works anywhere when exhausted, best at shelter)
         elif action == "SLEEP" or (agent["energy"] == 0 and action != "EAT"):
@@ -184,6 +204,7 @@ def _apply_action(
                     (gain, agent["id"]),
                 )
             _add_memory(agent["id"], tick, f"Rested at {agent['location']} (+{gain} energy)")
+            _add_chronicle(tick, f"{agent['name']} is sleeping/resting at {agent['location']}", "SLEEP", agent['id'])
 
         # ---- TALK ----
         elif action == "TALK" and target and message:
@@ -207,7 +228,7 @@ def _apply_action(
                     )
                 _add_memory(agent["id"], tick, f'Spoke to {tgt["name"]}: "{message[:60]}"')
                 _add_memory(tgt["id"], tick, f'{agent["name"]} said: "{message[:60]}"')
-                _add_chronicle(tick, f'💬 {agent["name"]} → {tgt["name"]}: "{message[:80]}"')
+                _add_chronicle(tick, f'💬 {agent["name"]} → {tgt["name"]}: "{message[:120]}"', "TALK", agent['id'])
 
         # ---- GIVE_BERRY ----
         elif action == "GIVE_BERRY" and "berry" in inventory and target:
@@ -234,7 +255,7 @@ def _apply_action(
                     )
                 _add_memory(agent["id"], tick, f'Gave a berry to {tgt["name"]}')
                 _add_memory(tgt["id"], tick, f'{agent["name"]} gave me a berry 🎁')
-                _add_chronicle(tick, f'🎁 {agent["name"]} gave a berry to {tgt["name"]}')
+                _add_chronicle(tick, f'🎁 {agent["name"]} gave a berry to {tgt["name"]}', "GIVE_BERRY", agent['id'])
 
     finally:
         conn.close()
@@ -322,8 +343,12 @@ def tick() -> int:
     for d in dead:
         with conn:
             conn.execute("UPDATE agents SET alive=0 WHERE id=?", (d["id"],))
-        _add_chronicle(new_tick, f"💀 {d['name']} has perished (starvation)")
+        _add_chronicle(new_tick, f"💀 {d['name']} has perished (starvation)", "DEATH", d["id"])
     conn.close()
+
+    # Log tick summary to chronicle.log file
+    alive_agents = get_agents()
+    _log_to_file(new_tick, alive_agents, new_berry)
 
     return new_tick
 
@@ -345,7 +370,7 @@ def create_agent(name: str, greed: float, sociability: float, curiosity: float) 
             (agent_id, name, round(greed, 2), round(sociability, 2), round(curiosity, 2)),
         )
     conn.close()
-    _add_chronicle(0, f"✨ {name} has entered The Grove")
+    _add_chronicle(0, f"✨ {name} has entered The Grove", "SPAWN", agent_id)
     return agent_id
 
 

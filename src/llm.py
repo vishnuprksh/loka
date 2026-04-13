@@ -10,7 +10,7 @@ import requests
 _raw_key = os.getenv("OPENROUTER_API_KEY", "")
 # Ignore placeholder values that ship in .env.example
 OPENROUTER_API_KEY = _raw_key if (len(_raw_key) > 20 and "your_" not in _raw_key) else ""
-MODEL = os.getenv("LOKA_MODEL", "google/gemma-3-4b-it:free")
+MODEL = os.getenv("LOKA_MODEL", "qwen/qwen3.6-plus")
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 

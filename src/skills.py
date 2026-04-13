@@ -248,7 +248,7 @@ class TalkSkill(Skill):
 
 class GiveBerrySkill(Skill):
     name = "GIVE_BERRY"
-    prompt_description = "GIVE_BERRY — target: agent name at same location (gives one food item)"
+    prompt_description = "GIVE_BERRY — target: agent name at same location (only use if they ASKED for food in chat)"
 
     def validate(self, agent, target, message, agents, resource_state, env) -> bool:
         if not target:
@@ -257,11 +257,28 @@ class GiveBerrySkill(Skill):
         food_items = env.food_items()
         if not any(item in food_items for item in inventory):
             return False
-        return any(
-            a["name"].lower() == target.lower() and a["location"] == agent["location"]
-            for a in agents
-            if a["id"] != agent["id"]
+        
+        # Check if the target is present
+        target_agent = next(
+            (a for a in agents if a["name"].lower() == target.lower() and a["location"] == agent["location"]),
+            None
         )
+        if not target_agent:
+            return False
+
+        # MANDATORY COMMUNICATION: Target must have asked for food/berries in their last message
+        from .storage import SQLiteBackend
+        storage = SQLiteBackend() # The tick loop provides storage, but validate doesn't. 
+        # Actually, let's just check the memories passed via 'agents' if possible? No, we need fresh DB check.
+        # Check if there is an unread message from this target to the agent containing keywords.
+        memories = storage.get_recent_memories(agent["id"], limit=5)
+        for m in memories:
+            if m.get("target") == agent["name"] and m.get("is_unanswered"):
+                msg = (m.get("message") or "").lower()
+                if any(word in msg for word in ["food", "berry", "berries", "hungry", "starving", "give", "help"]):
+                    return True
+        
+        return False
 
     def execute(self, agent, target, message, agents, resource_state, env, tick, storage) -> None:
         tgt = next(

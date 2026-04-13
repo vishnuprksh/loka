@@ -31,6 +31,8 @@
   - [x] Balanced survival stats to encourage social interaction (Stats max 20, slower decay)
   - [x] Reduced berry availability to increase scarcity and drive interaction
   - [x] Implementation of Hunger/Energy cross-decay (bar <= 3)
+  - [x] Mandatory communication for food sharing (Restricted `GIVE_BERRY` to verbal requests only)
+  - [x] Reduced transparency (Removed stats of others from prompt)
   - [ ] Communication Protocol (Speech/Gesture)
   - [ ] Relationship Mapping
   - [ ] Resource/Economic System

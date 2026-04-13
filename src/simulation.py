@@ -57,7 +57,7 @@ def _build_prompt(agent: dict, agents_at_loc: list[dict], resource_state: dict[s
 
     others = [a for a in agents_at_loc if a["id"] != agent["id"]]
     others_text = (
-        ", ".join(f"{a['name']} (hunger:{a['hunger']}, energy:{a['energy']})" for a in others)
+        ", ".join(f"{a['name']}" for a in others)
         or "Nobody else here."
     )
 

@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 load_dotenv()
 
 from src.db import init_db, reset_db
+from src.environment import THE_GROVE
 from src.simulation import (
     TICK_INTERVAL,
     create_agent,
@@ -60,7 +61,7 @@ async def simulation_loop() -> None:
 # ------------------------------------------------------------------ #
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    init_db()
+    init_db(THE_GROVE)
     seed_default_agents()
     asyncio.create_task(simulation_loop())
     yield
@@ -98,7 +99,7 @@ def new_agent(body: AgentCreate) -> dict:
 
 @app.post("/reset")
 def reset_simulation() -> dict:
-    reset_db()
+    reset_db(THE_GROVE)
     seed_default_agents()
     return {"status": "reset complete", "tick": 0}
 

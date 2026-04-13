@@ -15,12 +15,16 @@
   - [x] Server running — agents surviving autonomously at tick 37+
   - [x] Parallelized LLM calls to handle Latency vs. Tick drift
 
-- [ ] **Phase 3: LLM Integration (Real Social Behaviour)**
-  - [ ] Set real OPENROUTER_API_KEY in .env
-  - [ ] Verify agent TALK and GIVE_BERRY actions fire via LLM
-  - [ ] Tune prompts for emergent cultural norms
-  - [ ] World State Management (Grid/Region system)
-  - [ ] Time & Event Loop
+- [ ] **Phase 3: Modular Architecture (Phase 1 complete)**
+  - [x] `src/environment.py` — `Location`, `Resource`, `Environment`, `THE_GROVE`
+  - [x] `src/storage.py` — `StorageBackend` ABC + `SQLiteBackend`
+  - [x] `src/skills.py` — `Skill` ABC, `SkillRegistry`, all 7 skills, `SKILL_REGISTRY`
+  - [x] `src/db.py` — updated schema (`world_resources` table, env-seeding)
+  - [x] `src/simulation.py` — refactored tick loop using new modules
+  - [x] `main.py` — passes `THE_GROVE` to init/reset
+  - [x] `src/llm.py` — fixed `_smart_fallback` inventory detection
+  - [ ] Phase 2: Spatial partitioning + LLM batching + memory summarization
+  - [ ] Phase 3: Selective WebSocket broadcast
 
 - [ ] **Phase 3: Social & Interaction Layer**
   - [ ] Communication Protocol (Speech/Gesture)

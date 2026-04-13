@@ -14,7 +14,12 @@ def get_conn() -> sqlite3.Connection:
     return conn
 
 
-def init_db() -> None:
+def init_db(env=None) -> None:
+    """Create tables and seed resources from the given Environment.
+
+    Passing env=None skips resource seeding (useful for bare-schema creation).
+    Existing data is preserved; call reset_db() first for a fresh start.
+    """
     conn = get_conn()
     with conn:
         conn.executescript("""
@@ -50,22 +55,48 @@ def init_db() -> None:
             );
 
             CREATE TABLE IF NOT EXISTS world (
-                id          INTEGER PRIMARY KEY DEFAULT 1,
-                tick        INTEGER NOT NULL DEFAULT 0,
-                berry_count INTEGER NOT NULL DEFAULT 20
+                id   INTEGER PRIMARY KEY DEFAULT 1,
+                tick INTEGER NOT NULL DEFAULT 0
             );
 
-            INSERT OR IGNORE INTO world (id, tick, berry_count) VALUES (1, 0, 20);
+            CREATE TABLE IF NOT EXISTS world_resources (
+                name      TEXT    PRIMARY KEY,
+                count     INTEGER NOT NULL DEFAULT 0,
+                max_count INTEGER NOT NULL DEFAULT 0
+            );
+
+            INSERT OR IGNORE INTO world (id, tick) VALUES (1, 0);
         """)
+
+        # Seed resources from the environment definition
+        if env is not None:
+            for res in env.resources.values():
+                conn.execute(
+                    "INSERT OR IGNORE INTO world_resources (name, count, max_count) VALUES (?, ?, ?)",
+                    (res.name, res.max_count, res.max_count),
+                )
     conn.close()
 
 
-def reset_db() -> None:
-    """Clear all data and reinitialize the database."""
+def reset_db(env=None) -> None:
+    """Clear all simulation data and re-seed resources from env."""
+    # Ensure tables exist before truncating (handles first-run / schema migration)
+    init_db(env)
     conn = get_conn()
     with conn:
         conn.execute("DELETE FROM agents")
         conn.execute("DELETE FROM memories")
         conn.execute("DELETE FROM chronicle")
-        conn.execute("UPDATE world SET tick=0, berry_count=20 WHERE id=1")
+        conn.execute("UPDATE world SET tick=0 WHERE id=1")
+        conn.execute("DELETE FROM world_resources")
     conn.close()
+    # Re-seed resource counts from environment
+    if env is not None:
+        conn = get_conn()
+        with conn:
+            for res in env.resources.values():
+                conn.execute(
+                    "INSERT OR IGNORE INTO world_resources (name, count, max_count) VALUES (?, ?, ?)",
+                    (res.name, res.max_count, res.max_count),
+                )
+        conn.close()

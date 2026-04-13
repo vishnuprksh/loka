@@ -63,7 +63,9 @@ def _smart_fallback(prompt: str) -> dict:
     import re
 
     hunger, energy, location = 5, 5, "fire_pit"
-    has_berry = "berry" in prompt and "empty" not in prompt
+    # Check inventory line specifically — avoids matching resources section
+    inv_match = re.search(r"Inventory:\s+(\[.*?\])", prompt)
+    has_food = bool(inv_match and re.search(r"'[^']+'", inv_match.group(1)))
     others_here = "Nobody else here" not in prompt
 
     try:
@@ -81,7 +83,7 @@ def _smart_fallback(prompt: str) -> dict:
         pass
 
     # Critical survival first (threshold raised to 6 for ample margin)
-    if hunger <= 6 and has_berry:
+    if hunger <= 6 and has_food:
         return {"thought": "I must eat NOW.", "action": "EAT", "target": None, "message": None}
     if hunger <= 6 and location == "berry_bush":
         return {"thought": "Foraging desperately.", "action": "FORAGE", "target": None, "message": None}

@@ -2,7 +2,7 @@
 
 - [ ] **Phase 1: Foundation & Planning**
   - [x] Initial Architecture Brainstorming
-  - [ ] Detailed Technical Specification
+  - [x] Simple World Setting ("The Grove") defined
   - [ ] Environment Setup
 
 - [ ] **Phase 2: Core Simulation Engine**

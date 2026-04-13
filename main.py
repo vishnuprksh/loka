@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 
 load_dotenv()
 
-from src.db import init_db
+from src.db import init_db, reset_db
 from src.simulation import (
     TICK_INTERVAL,
     create_agent,
@@ -94,6 +94,13 @@ class AgentCreate(BaseModel):
 def new_agent(body: AgentCreate) -> dict:
     agent_id = create_agent(body.name, body.greed, body.sociability, body.curiosity)
     return {"id": agent_id, "name": body.name}
+
+
+@app.post("/reset")
+def reset_simulation() -> dict:
+    reset_db()
+    seed_default_agents()
+    return {"status": "reset complete", "tick": 0}
 
 
 @app.websocket("/ws")

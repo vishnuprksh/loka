@@ -56,3 +56,14 @@ def init_db() -> None:
             INSERT OR IGNORE INTO world (id, tick, berry_count) VALUES (1, 0, 20);
         """)
     conn.close()
+
+
+def reset_db() -> None:
+    """Clear all data and reinitialize the database."""
+    conn = get_conn()
+    with conn:
+        conn.execute("DELETE FROM agents")
+        conn.execute("DELETE FROM memories")
+        conn.execute("DELETE FROM chronicle")
+        conn.execute("UPDATE world SET tick=0, berry_count=20 WHERE id=1")
+    conn.close()

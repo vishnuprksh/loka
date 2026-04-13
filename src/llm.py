@@ -64,6 +64,7 @@ def _smart_fallback(prompt: str) -> dict:
 
     hunger, energy, location = 5, 5, "fire_pit"
     has_berry = "berry" in prompt and "empty" not in prompt
+    others_here = "Nobody else here" not in prompt
 
     try:
         # Use \s+ to tolerate alignment spaces in the prompt template
@@ -99,7 +100,37 @@ def _smart_fallback(prompt: str) -> dict:
     if location == "berry_bush" and hunger < 9:
         return {"thought": "Collecting food while I can.", "action": "FORAGE", "target": None, "message": None}
 
-    # Social / idle
+    # Social interactions (if others are present)
+    if others_here and random.random() < 0.4:
+        # Extract a target name from the prompt
+        m = re.search(r"WHO IS HERE:\s*([A-Za-z]+)\s*\(", prompt)
+        if m:
+            target_name = m.group(1).lower()
+            if random.random() < 0.6:
+                # TALK action
+                messages = [
+                    "How are you doing?",
+                    "The grove is peaceful today.",
+                    "Have you found any berries?",
+                    "Let's stay together.",
+                    "I hope we survive the season.",
+                ]
+                return {
+                    "thought": "I should connect with others.",
+                    "action": "TALK",
+                    "target": target_name,
+                    "message": random.choice(messages),
+                }
+            elif has_berry and random.random() < 0.5:
+                # GIVE_BERRY action
+                return {
+                    "thought": "Sharing brings us closer.",
+                    "action": "GIVE_BERRY",
+                    "target": target_name,
+                    "message": None,
+                }
+
+    # Social / idle options
     options = [
         ("MOVE_TO", "fire_pit", "I want company."),
         ("MOVE_TO", "berry_bush", "I'll find food."),

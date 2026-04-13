@@ -323,6 +323,7 @@
         <span class="slider-val" id="valCurio">0.5</span>
       </div>
       <button id="createBtn" onclick="createAgent()">BIRTH AGENT</button>
+      <button id="resetBtn" onclick="resetSimulation()" style="margin-top: 10px; background: #f85149; border-color: #f85149;">RESET ALL</button>
     </div>
   </div>
 
@@ -501,11 +502,11 @@ function statBar(label, val, cls) {
 }
 
 // ── Chronicle ─────────────────────────────────────────────────────
-let lastChronicleLength = 0;
+let lastChronicleEntry = '';
 
 function renderChronicle(entries) {
-  if (entries.length === lastChronicleLength) return;
-  lastChronicleLength = entries.length;
+  if (entries.length > 0 && entries[0].entry === lastChronicleEntry) return;
+  lastChronicleEntry = entries.length > 0 ? entries[0].entry : '';
 
   const log = document.getElementById('chronicle-log');
   log.innerHTML = '';
@@ -570,6 +571,25 @@ async function createAgent() {
     document.getElementById('agentName').value = '';
     btn.textContent = `✨ ${result.name} IS ALIVE!`;
     setTimeout(() => { btn.textContent = 'BIRTH AGENT'; btn.disabled = false; }, 2500);
+    fetch('/state').then(r => r.json()).then(applyState);
+  } catch {
+    btn.textContent = 'ERROR — RETRY';
+    btn.disabled    = false;
+  }
+}
+
+async function resetSimulation() {
+  if (!confirm('🚨 This will erase all agents, memories, and chronicles. Are you sure?')) return;
+
+  const btn = document.getElementById('resetBtn');
+  btn.disabled    = true;
+  btn.textContent = 'RESETTING…';
+
+  try {
+    const resp = await fetch('/reset', { method: 'POST' });
+    const result = await resp.json();
+    btn.textContent = '✨ RESET COMPLETE!';
+    setTimeout(() => { btn.textContent = 'RESET ALL'; btn.disabled = false; }, 2500);
     fetch('/state').then(r => r.json()).then(applyState);
   } catch {
     btn.textContent = 'ERROR — RETRY';

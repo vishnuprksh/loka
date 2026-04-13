@@ -38,6 +38,8 @@ class StorageBackend(ABC):
         greed: float,
         sociability: float,
         curiosity: float,
+        empathy: float = 0.5,
+        assertiveness: float = 0.5,
         path: str = "survivor",
     ) -> None: ...
 
@@ -144,18 +146,21 @@ class SQLiteBackend(StorageBackend):
         greed: float,
         sociability: float,
         curiosity: float,
+        empathy: float = 0.5,
+        assertiveness: float = 0.5,
         path: str = "survivor",
     ) -> None:
         conn = get_conn()
         with conn:
             conn.execute(
                 """INSERT INTO agents
-                   (id, name, greed, sociability, curiosity, path,
+                   (id, name, greed, sociability, curiosity, empathy, assertiveness, path,
                     hunger, energy, community, location, inventory,
                     alive, created_tick, last_thought)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'fire_pit', '[]', 1,
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'fire_pit', '[]', 1,
                            (SELECT tick FROM world WHERE id=1), '')""",
-                (agent_id, name, round(greed, 2), round(sociability, 2), round(curiosity, 2), path,
+                (agent_id, name, round(greed, 2), round(sociability, 2), round(curiosity, 2), 
+                 round(empathy, 2), round(assertiveness, 2), path,
                  MAX_STAT_VALUE, MAX_STAT_VALUE, MAX_STAT_VALUE // 2),
             )
         conn.close()
@@ -275,6 +280,16 @@ class SQLiteBackend(StorageBackend):
                 conn.execute(
                     "UPDATE agents SET energy=MAX(0,energy-1) WHERE alive=1 AND location!='shelter' AND location!='fire_pit'"
                 )
+
+            # Starvation/Exhaustion penalty: -1 to other stats if bar is 3 or less
+            # Hunger <= 3 causes fatigue (energy loss)
+            conn.execute(
+                "UPDATE agents SET energy=MAX(0, energy-1) WHERE alive=1 AND hunger<=3"
+            )
+            # Energy <= 3 causes starvation (hunger loss)
+            conn.execute(
+                "UPDATE agents SET hunger=MAX(0, hunger-1) WHERE alive=1 AND energy<=3"
+            )
         conn.close()
 
     def kill_starved_agents(self) -> list[dict]:

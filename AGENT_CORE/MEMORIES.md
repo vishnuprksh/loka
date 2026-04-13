@@ -1,4 +1,9 @@
 # Strategic Memories
+### 2026-04-13 - Survival Interdependency
+- **Context:** Decoupled stats allow for easier survival without consequences until zero.
+- **Decision:** Implemented cross-decay where Hunger <= 3 causes Energy loss, and Energy <= 3 causes Hunger loss.
+- **Reasoning:** Encourages proactive survival management and creates a "desperation" phase where one failure cascades into another. Added explicit warnings to agent prompts to ensure the AI understands these mechanics.
+
 ### 2026-04-13 - Modularized Simulation Constants
 - **Context:** User requested lowering max stats from 20 to 10 and requested a modular way to manage these values.
 - **Decision:** Created `src/config.py` to hold simulation-wide constants (MAX_STAT_VALUE, thresholds, resource defaults).

@@ -86,15 +86,18 @@ def get_state() -> dict:
 
 
 class AgentCreate(BaseModel):
-    name:        str   = Field(..., min_length=2, max_length=20)
-    greed:       float = Field(0.5, ge=0.0, le=1.0)
-    sociability: float = Field(0.7, ge=0.0, le=1.0)
-    curiosity:   float = Field(0.5, ge=0.0, le=1.0)
+    name:          str   = Field(..., min_length=2, max_length=20)
+    greed:         float = Field(0.5, ge=0.0, le=1.0)
+    sociability:   float = Field(0.7, ge=0.0, le=1.0)
+    curiosity:     float = Field(0.5, ge=0.0, le=1.0)
+    empathy:       float = Field(0.5, ge=0.0, le=1.0)
+    assertiveness: float = Field(0.5, ge=0.0, le=1.0)
 
 
 @app.post("/agents")
 def new_agent(body: AgentCreate) -> dict:
-    agent_id = create_agent(body.name, body.greed, body.sociability, body.curiosity)
+    agent_id = create_agent(body.name, body.greed, body.sociability, body.curiosity, 
+                            body.empathy, body.assertiveness)
     return {"id": agent_id, "name": body.name}
 
 

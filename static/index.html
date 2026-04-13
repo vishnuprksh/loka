@@ -323,6 +323,18 @@
                oninput="updateVal('curio', this.value)" />
         <span class="slider-val" id="valCurio">0.5</span>
       </div>
+      <div class="slider-row">
+        <label>EMPATHY</label>
+        <input type="range" id="sliderEmpathy" min="0" max="100" value="50"
+               oninput="updateVal('empathy', this.value)" />
+        <span class="slider-val" id="valEmpathy">0.5</span>
+      </div>
+      <div class="slider-row">
+        <label>ASSERTIVE</label>
+        <input type="range" id="sliderAssert" min="0" max="100" value="50"
+               oninput="updateVal('assert', this.value)" />
+        <span class="slider-val" id="valAssert">0.5</span>
+      </div>
       <button id="createBtn" onclick="createAgent()">BIRTH AGENT</button>
       <button id="resetBtn" onclick="resetSimulation()" style="margin-top: 10px; background: #f85149; border-color: #f85149;">RESET ALL</button>
     </div>
@@ -544,10 +556,19 @@ function renderAgents(agents) {
 
     const card = document.createElement('div');
     card.className = 'agent-card' + (a.alive ? '' : ' dead');
+    
+    // Determine color class for path
+    let pathStyle = 'color:var(--muted)';
+    if (a.path === 'Performer') pathStyle = 'color:var(--yellow)';
+    if (a.path === 'Scholar')   pathStyle = 'color:var(--blue)';
+    if (a.path === 'Commoner')  pathStyle = 'color:var(--green)';
+    if (a.path === 'Leader')    pathStyle = 'color:var(--red)';
+
     card.innerHTML = `
       <div class="agent-header">
         <div class="agent-dot" style="background:${color}"></div>
         <span class="agent-name" style="color:${color}">${a.name}</span>
+        <span style="font-size:0.6rem; ${pathStyle}; margin-left:auto; border:1px solid; border-radius:4px; padding:0 4px;">${a.path.toUpperCase()}</span>
         ${!a.alive ? '<span style="color:var(--red);font-size:.65rem">PERISHED</span>' : ''}
       </div>
       <div class="agent-loc">📍 ${a.location.replace('_',' ')} &nbsp; ${inv}</div>
@@ -558,9 +579,11 @@ function renderAgents(agents) {
         ${statBar('Social',    a.community, 'community')}
       </div>
       <div class="trait-row">
-        <span class="trait-badge">G:${a.greed.toFixed(1)}</span>
-        <span class="trait-badge">S:${a.sociability.toFixed(1)}</span>
-        <span class="trait-badge">C:${a.curiosity.toFixed(1)}</span>
+        <span class="trait-badge" title="Greed">G:${a.greed.toFixed(1)}</span>
+        <span class="trait-badge" title="Sociability">S:${a.sociability.toFixed(1)}</span>
+        <span class="trait-badge" title="Curiosity">C:${a.curiosity.toFixed(1)}</span>
+        <span class="trait-badge" title="Empathy" style="border-color:var(--green)">E:${a.empathy.toFixed(1)}</span>
+        <span class="trait-badge" title="Assertiveness" style="border-color:var(--red)">A:${a.assertiveness.toFixed(1)}</span>
       </div>`;
     list.appendChild(card);
   }
@@ -656,6 +679,8 @@ async function createAgent() {
   const greed       = document.getElementById('sliderGreed').value / 100;
   const sociability = document.getElementById('sliderSocial').value / 100;
   const curiosity   = document.getElementById('sliderCurio').value / 100;
+  const empathy     = document.getElementById('sliderEmpathy').value / 100;
+  const assertiveness = document.getElementById('sliderAssert').value / 100;
 
   const btn = document.getElementById('createBtn');
   btn.disabled    = true;
@@ -665,7 +690,7 @@ async function createAgent() {
     const resp   = await fetch('/agents', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ name, greed, sociability, curiosity }),
+      body:    JSON.stringify({ name, greed, sociability, curiosity, empathy, assertiveness }),
     });
     const result = await resp.json();
     document.getElementById('agentName').value = '';

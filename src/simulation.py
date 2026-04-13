@@ -74,9 +74,10 @@ def _build_prompt(agent: dict, agents_at_loc: list[dict], resource_state: dict[s
     )
 
     path_missions = {
-        "Merchant": "YOUR PATH: The Merchant. Survival depends on resource accumulation. Trade, hoard, and prioritize gathering to ensure long-term stability.",
-        "Leader": "YOUR PATH: The Leader. Survival is a team effort. Build community, maintain social ties, and ensure everyone works together.",
-        "Scholar": "YOUR PATH: The Scholar. Survival through knowledge. Explore new locations, observe resource patterns, and satisfy your curiosity.",
+        "Performer": "YOUR PATH: The Performer (Yellow). Survival through charm and social influence. Build community, entertain, and maintain enthusiasm to keep morale high.",
+        "Scholar": "YOUR PATH: The Scholar (Blue). Survival through knowledge and precision. Observe patterns, analyze resources, and provide the group with systematic insights.",
+        "Commoner": "YOUR PATH: The Commoner (Green). Survival through stability and harmony. Be reliable, support others, and ensure the community remains peaceful and steady.",
+        "Leader": "YOUR PATH: The Leader (Red). Survival through decisive action and results. Take charge, prioritize efficiency, and lead the group toward clear objectives.",
     }
     path_instruction = path_missions.get(agent.get("path"), "YOUR PATH: The Survivor. Do what you must to stay alive.")
 
@@ -86,12 +87,12 @@ def _build_prompt(agent: dict, agents_at_loc: list[dict], resource_state: dict[s
 
     return f"""You are {agent['name']}, an autonomous agent in {ENV.name}.
 
-TRAITS: Greed={agent['greed']:.1f}, Sociability={agent['sociability']:.1f}, Curiosity={agent['curiosity']:.1f}
+TRAITS: Greed={agent['greed']:.1f}, Sociability={agent['sociability']:.1f}, Curiosity={agent['curiosity']:.1f}, Empathy={agent.get('empathy', 0.5):.1f}, Assertiveness={agent.get('assertiveness', 0.5):.1f}
 PATH: {agent.get('path', 'Survivor')}
 
 STATE:
-- Hunger:    {agent['hunger']}/{MAX_STAT_VALUE}  (eat if below {HUNGER_THRESHOLD_LOW}!)
-- Energy:    {agent['energy']}/{MAX_STAT_VALUE}  (sleep if below {ENERGY_THRESHOLD_LOW}!)
+- Hunger:    {agent['hunger']}/{MAX_STAT_VALUE}  (eat if below {HUNGER_THRESHOLD_LOW}! Low hunger makes you TIRED)
+- Energy:    {agent['energy']}/{MAX_STAT_VALUE}  (sleep if below {ENERGY_THRESHOLD_LOW}! Low energy makes you HUNGRY)
 - Community: {agent['community']}/{MAX_STAT_VALUE}
 - Location:  {agent['location']}
 - Inventory: {inventory if inventory else 'empty'}
@@ -225,14 +226,21 @@ def tick() -> int:
 # ------------------------------------------------------------------
 # Agent management
 # ------------------------------------------------------------------
-def create_agent(name: str, greed: float, sociability: float, curiosity: float) -> str:
+def create_agent(name: str, greed: float, sociability: float, curiosity: float, 
+                 empathy: float = 0.5, assertiveness: float = 0.5, path: str = None) -> str:
     agent_id = str(uuid.uuid4())[:8]
 
-    # Determine path based on highest trait
-    traits = {"Merchant": greed, "Leader": sociability, "Scholar": curiosity}
-    path = max(traits, key=traits.get)
+    # Determine path based on 4-color model if not provided
+    if not path:
+        traits = {
+            "Performer": sociability,   # Yellow
+            "Scholar": curiosity,       # Blue
+            "Commoner": empathy,         # Green
+            "Leader": assertiveness,     # Red
+        }
+        path = max(traits, key=traits.get)
 
-    STORAGE.create_agent(agent_id, name, greed, sociability, curiosity, path=path)
+    STORAGE.create_agent(agent_id, name, greed, sociability, curiosity, empathy, assertiveness, path=path)
     world = STORAGE.get_world()
     STORAGE.add_chronicle(world["tick"], f"✨ {name} ({path}) has entered {ENV.name}", "SPAWN", agent_id)
     return agent_id
@@ -241,9 +249,17 @@ def create_agent(name: str, greed: float, sociability: float, curiosity: float) 
 def seed_default_agents() -> None:
     """Populate the world with starter agents if empty."""
     if not STORAGE.get_agents():
-        create_agent("Ara",  greed=0.2, sociability=0.8, curiosity=0.5)
-        create_agent("Dax",  greed=0.7, sociability=0.5, curiosity=0.8)
-        create_agent("Mira", greed=0.1, sociability=0.9, curiosity=0.3)
+        # Ara (Yellow - Performer): Sociable, Enthusiastic
+        create_agent("Ara",  greed=0.3, sociability=0.9, curiosity=0.6, empathy=0.7, assertiveness=0.6, path="Performer")
+        
+        # Dax (Blue - Scholar): Precise, Analytical
+        create_agent("Dax",  greed=0.5, sociability=0.3, curiosity=0.9, empathy=0.3, assertiveness=0.4, path="Scholar")
+        
+        # Mira (Green - Commoner): Reliable, Harmonious
+        create_agent("Mira", greed=0.2, sociability=0.8, curiosity=0.4, empathy=0.9, assertiveness=0.3, path="Commoner")
+        
+        # Kael (Red - Leader): Decisive, Result-oriented
+        create_agent("Kael", greed=0.9, sociability=0.5, curiosity=0.6, empathy=0.2, assertiveness=0.9, path="Leader")
 
 
 # ------------------------------------------------------------------
@@ -263,9 +279,12 @@ def get_state_dict() -> dict:
             {
                 "id":           a["id"],
                 "name":         a["name"],
+                "path":         a["path"],
                 "greed":        a["greed"],
                 "sociability":  a["sociability"],
                 "curiosity":    a["curiosity"],
+                "empathy":      a.get("empathy", 0.5),
+                "assertiveness": a.get("assertiveness", 0.5),
                 "hunger":       a["hunger"],
                 "energy":       a["energy"],
                 "community":    a["community"],

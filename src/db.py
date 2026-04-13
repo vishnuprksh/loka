@@ -29,6 +29,8 @@ def init_db(env=None) -> None:
                 greed        REAL    NOT NULL DEFAULT 0.5,
                 sociability  REAL    NOT NULL DEFAULT 0.5,
                 curiosity    REAL    NOT NULL DEFAULT 0.5,
+                empathy      REAL    NOT NULL DEFAULT 0.5,
+                assertiveness REAL    NOT NULL DEFAULT 0.5,
                 hunger       INTEGER NOT NULL DEFAULT 5,
                 energy       INTEGER NOT NULL DEFAULT 10,
                 community    INTEGER NOT NULL DEFAULT 5,

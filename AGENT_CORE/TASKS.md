@@ -30,6 +30,7 @@
 - [ ] **Phase 4: Social & Interaction Layer**
   - [x] Balanced survival stats to encourage social interaction (Stats max 20, slower decay)
   - [x] Reduced berry availability to increase scarcity and drive interaction
+  - [x] Implementation of Hunger/Energy cross-decay (bar <= 3)
   - [ ] Communication Protocol (Speech/Gesture)
   - [ ] Relationship Mapping
   - [ ] Resource/Economic System

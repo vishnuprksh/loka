@@ -37,6 +37,7 @@ class StorageBackend(ABC):
         greed: float,
         sociability: float,
         curiosity: float,
+        path: str = "survivor",
     ) -> None: ...
 
     # ---- World -----------------------------------------------------------------
@@ -72,6 +73,7 @@ class StorageBackend(ABC):
         event: str,
         target: str | None = None,
         message: str | None = None,
+        is_unanswered: int = 0,
     ) -> None: ...
 
     # ---- Chronicle -------------------------------------------------------------
@@ -100,12 +102,20 @@ class StorageBackend(ABC):
         """Mark agents with hunger=0 as dead; return their records."""
         ...
 
+    @abstractmethod
+    def get_conn(self):
+        """Return a database connection."""
+        ...
+
 
 # ---------------------------------------------------------------------------
 
 
 class SQLiteBackend(StorageBackend):
     """SQLite-backed storage implementation."""
+
+    def get_conn(self):
+        return get_conn()
 
     # ---- Agents ----------------------------------------------------------------
 
@@ -133,17 +143,18 @@ class SQLiteBackend(StorageBackend):
         greed: float,
         sociability: float,
         curiosity: float,
+        path: str = "survivor",
     ) -> None:
         conn = get_conn()
         with conn:
             conn.execute(
                 """INSERT INTO agents
-                   (id, name, greed, sociability, curiosity,
+                   (id, name, greed, sociability, curiosity, path,
                     hunger, energy, community, location, inventory,
                     alive, created_tick, last_thought)
-                   VALUES (?, ?, ?, ?, ?, 8, 10, 6, 'fire_pit', '[]', 1,
+                   VALUES (?, ?, ?, ?, ?, ?, 8, 10, 6, 'fire_pit', '[]', 1,
                            (SELECT tick FROM world WHERE id=1), '')""",
-                (agent_id, name, round(greed, 2), round(sociability, 2), round(curiosity, 2)),
+                (agent_id, name, round(greed, 2), round(sociability, 2), round(curiosity, 2), path),
             )
         conn.close()
 
@@ -187,7 +198,7 @@ class SQLiteBackend(StorageBackend):
     def get_recent_memories(self, agent_id: str, limit: int = 15) -> list[dict]:
         conn = get_conn()
         rows = conn.execute(
-            "SELECT tick, event, target, message FROM memories "
+            "SELECT tick, event, target, message, is_unanswered FROM memories "
             "WHERE agent_id=? ORDER BY tick DESC LIMIT ?",
             (agent_id, limit),
         ).fetchall()
@@ -201,12 +212,13 @@ class SQLiteBackend(StorageBackend):
         event: str,
         target: str | None = None,
         message: str | None = None,
+        is_unanswered: int = 0,
     ) -> None:
         conn = get_conn()
         with conn:
             conn.execute(
-                "INSERT INTO memories (agent_id, tick, event, target, message) VALUES (?, ?, ?, ?, ?)",
-                (agent_id, tick, event, target, message),
+                "INSERT INTO memories (agent_id, tick, event, target, message, is_unanswered) VALUES (?, ?, ?, ?, ?, ?)",
+                (agent_id, tick, event, target, message, is_unanswered),
             )
         conn.close()
 

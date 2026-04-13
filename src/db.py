@@ -35,17 +35,19 @@ def init_db(env=None) -> None:
                 location     TEXT    NOT NULL DEFAULT 'fire_pit',
                 inventory    TEXT    NOT NULL DEFAULT '[]',
                 alive        INTEGER NOT NULL DEFAULT 1,
+                path         TEXT    NOT NULL DEFAULT 'survivor',
                 created_tick INTEGER NOT NULL DEFAULT 0,
                 last_thought TEXT    NOT NULL DEFAULT ''
             );
 
             CREATE TABLE IF NOT EXISTS memories (
-                id       INTEGER PRIMARY KEY AUTOINCREMENT,
-                agent_id TEXT    NOT NULL,
-                tick     INTEGER NOT NULL,
-                event    TEXT    NOT NULL,
-                target   TEXT,
-                message  TEXT
+                id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                agent_id     TEXT    NOT NULL,
+                tick         INTEGER NOT NULL,
+                event        TEXT    NOT NULL,
+                target       TEXT,
+                message      TEXT,
+                is_unanswered INTEGER DEFAULT 0
             );
 
             CREATE TABLE IF NOT EXISTS chronicle (

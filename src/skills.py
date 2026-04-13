@@ -210,18 +210,32 @@ class TalkSkill(Skill):
         )
         if not tgt:
             return
+            
+        # Clear all pending unanswered messages for the caller as they are now responding/starting a turn
+        # (This is a simplified approach; in a multi-party chat it might be more complex)
+        conn = storage.get_conn()
+        with conn:
+            conn.execute("UPDATE memories SET is_unanswered=0 WHERE agent_id=?", (agent["id"],))
+        conn.close()
+
         storage.update_agent(agent["id"], community=min(10, agent["community"] + 2))
         storage.update_agent(tgt["id"], community=min(10, tgt["community"] + 1))
+        
+        # Add memory for the speaker
         storage.add_memory(
             agent["id"], tick,
             f'Spoke to {tgt["name"]}: "{message[:60]}"',
             target=tgt["name"], message=message,
         )
+        
+        # Add memory for the listener, marked as unanswered
         storage.add_memory(
             tgt["id"], tick,
             f'{agent["name"]} said: "{message[:60]}"',
             target=agent["name"], message=message,
+            is_unanswered=1
         )
+        
         storage.add_chronicle(
             tick,
             f'💬 {agent["name"]} → {tgt["name"]}: "{message[:120]}"',

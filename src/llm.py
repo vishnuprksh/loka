@@ -44,15 +44,22 @@ def call_llm(prompt: str) -> dict:
 
 def _parse_action(content: str) -> dict:
     """Extract a JSON action object from LLM output."""
+    default_resp = {"thought": "I'm confused.", "action": "DO_NOTHING", "target": None, "message": None, "conversation_status": "END"}
     try:
-        return json.loads(content)
+        data = json.loads(content)
+        if "conversation_status" not in data:
+            data["conversation_status"] = "END"
+        return data
     except Exception:
         pass
     try:
         start = content.find("{")
         end = content.rfind("}") + 1
         if start >= 0 and end > start:
-            return json.loads(content[start:end])
+            data = json.loads(content[start:end])
+            if "conversation_status" not in data:
+                data["conversation_status"] = "END"
+            return data
     except Exception:
         pass
-    return {"thought": "I'm confused.", "action": "DO_NOTHING", "target": None, "message": None}
+    return default_resp

@@ -31,12 +31,18 @@ def _build_prompt(agent: dict, agents_at_loc: list[dict], resource_state: dict[s
     inventory = json.loads(agent["inventory"])
     memories = STORAGE.get_recent_memories(agent["id"], limit=20)
 
+    unanswered_message = None
     mem_lines = []
     for m in memories:
+        status = ""
+        if m.get("is_unanswered"):
+            status = " [UNANSWERED]"
+            unanswered_message = m["message"]
+        
         if "said:" in m["event"] or "Spoke to" in m["event"]:
-            line = f"- (Tick {m['tick']}) [SOCIAL] {m['event']}"
+            line = f"- (Tick {m['tick']}) [SOCIAL]{status} {m['event']}"
         else:
-            line = f"- (Tick {m['tick']}) {m['event']}"
+            line = f"- (Tick {m['tick']}){status} {m['event']}"
         mem_lines.append(line)
     mem_text = "\n".join(mem_lines) or "None yet."
 
@@ -63,9 +69,21 @@ def _build_prompt(agent: dict, agents_at_loc: list[dict], resource_state: dict[s
         for line in SKILLS.prompt_lines()
     )
 
+    path_missions = {
+        "Merchant": "YOUR PATH: The Merchant. Survival depends on resource accumulation. Trade, hoard, and prioritize gathering to ensure long-term stability.",
+        "Leader": "YOUR PATH: The Leader. Survival is a team effort. Build community, maintain social ties, and ensure everyone works together.",
+        "Scholar": "YOUR PATH: The Scholar. Survival through knowledge. Explore new locations, observe resource patterns, and satisfy your curiosity.",
+    }
+    path_instruction = path_missions.get(agent.get("path"), "YOUR PATH: The Survivor. Do what you must to stay alive.")
+
+    mandatory_reply_instruction = ""
+    if unanswered_message:
+        mandatory_reply_instruction = f"\n\nCRITICAL: {unanswered_message} was just said to you. You MUST respond in this tick using the TALK action. After responding, decide if you wish to CONTINUE the conversation or END it."
+
     return f"""You are {agent['name']}, an autonomous agent in {ENV.name}.
 
 TRAITS: Greed={agent['greed']:.1f}, Sociability={agent['sociability']:.1f}, Curiosity={agent['curiosity']:.1f}
+PATH: {agent.get('path', 'Survivor')}
 
 STATE:
 - Hunger:    {agent['hunger']}/10  (eat if below 4!)
@@ -82,13 +100,19 @@ WORLD RESOURCES:
 RECENT MEMORIES (Most recent at top):
 {mem_text}
 
-MISSION: Survive and build a society. If someone talks to you, respond naturally. Do not repeat greeting patterns if you just spoke to them.
+MISSION: Survive and build a society. {path_instruction}{mandatory_reply_instruction}
 
 AVAILABLE ACTIONS:
   {skill_lines_text}
 
 Respond ONLY with valid JSON:
-{{"thought": "...", "action": "...", "target": "...", "message": "..."}}"""
+{{
+  "thought": "...", 
+  "action": "...", 
+  "target": "...", 
+  "message": "...",
+  "conversation_status": "CONTINUE" or "END" (only relevant if you use TALK)
+}}"""
 
 
 # ------------------------------------------------------------------
@@ -156,6 +180,15 @@ def tick() -> int:
     for agent, action_data in results:
         thought = (action_data.get("thought") or "")[:150]
         STORAGE.update_agent(agent["id"], last_thought=thought)
+        
+        # If the action isn't TALK, or if conversation_status is END, clear unanswered for this agent
+        # (Already partially handled in TalkSkill, but this ensures a "non-TALK" action clears the flag)
+        if action_data.get("action") != "TALK" or action_data.get("conversation_status") == "END":
+            conn = STORAGE.get_conn()
+            with conn:
+                conn.execute("UPDATE memories SET is_unanswered=0 WHERE agent_id=?", (agent["id"],))
+            conn.close()
+
         _apply_action(agent, action_data, agents, resource_state, new_tick)
 
     # Natural stat decay
@@ -190,9 +223,14 @@ def tick() -> int:
 # ------------------------------------------------------------------
 def create_agent(name: str, greed: float, sociability: float, curiosity: float) -> str:
     agent_id = str(uuid.uuid4())[:8]
-    STORAGE.create_agent(agent_id, name, greed, sociability, curiosity)
+
+    # Determine path based on highest trait
+    traits = {"Merchant": greed, "Leader": sociability, "Scholar": curiosity}
+    path = max(traits, key=traits.get)
+
+    STORAGE.create_agent(agent_id, name, greed, sociability, curiosity, path=path)
     world = STORAGE.get_world()
-    STORAGE.add_chronicle(world["tick"], f"✨ {name} has entered {ENV.name}", "SPAWN", agent_id)
+    STORAGE.add_chronicle(world["tick"], f"✨ {name} ({path}) has entered {ENV.name}", "SPAWN", agent_id)
     return agent_id
 
 

@@ -101,19 +101,59 @@ def _smart_fallback(prompt: str) -> dict:
         return {"thought": "Collecting food while I can.", "action": "FORAGE", "target": None, "message": None}
 
     # Social interactions (if others are present)
-    if others_here and random.random() < 0.4:
+    if others_here and random.random() < 0.6:
         # Extract a target name from the prompt
         m = re.search(r"WHO IS HERE:\s*([A-Za-z]+)\s*\(", prompt)
         if m:
-            target_name = m.group(1).lower()
-            if random.random() < 0.6:
-                # TALK action
+            target_name = m.group(1)
+            
+            # Check if we were just spoken to
+            # RECENT MEMORIES (Most recent at top):
+            # - (Tick 15) Mira said: "Hey Ara, could you spare a berry? I'm really hungry."
+            last_message_match = re.search(rf"- \(Tick \d+\) \[SOCIAL\] {target_name} said: \"([^\"]+)\"", prompt)
+            
+            if last_message_match:
+                received_msg = last_message_match.group(1).lower()
+                # Simple response logic
+                if "berry" in received_msg or "hungry" in received_msg:
+                    if has_berry:
+                        return {
+                            "thought": f"{target_name} is hungry. I should help.",
+                            "action": "GIVE_BERRY",
+                            "target": target_name,
+                            "message": "Here, please take this berry."
+                        }
+                    else:
+                        return {
+                            "thought": "I don't have berries to give.",
+                            "action": "TALK",
+                            "target": target_name,
+                            "message": "I'm sorry, I don't have any berries right now."
+                        }
+                
+                responses = [
+                    f"I hear you, {target_name}.",
+                    "The grove is tough today, isn't it?",
+                    "We have to look out for each other.",
+                    "Are you planning to forage soon?",
+                    "Let's move to the fire pit together later."
+                ]
+                return {
+                    "thought": f"Responding to {target_name}.",
+                    "action": "TALK",
+                    "target": target_name,
+                    "message": random.choice(responses),
+                }
+
+            if random.random() < 0.5:
+                # Initiate TALK action
                 messages = [
                     "How are you doing?",
                     "The grove is peaceful today.",
                     "Have you found any berries?",
                     "Let's stay together.",
                     "I hope we survive the season.",
+                    f"Hi {target_name}, are you feeling okay?",
                 ]
                 return {
                     "thought": "I should connect with others.",
@@ -121,13 +161,13 @@ def _smart_fallback(prompt: str) -> dict:
                     "target": target_name,
                     "message": random.choice(messages),
                 }
-            elif has_berry and random.random() < 0.5:
+            elif has_berry and random.random() < 0.3:
                 # GIVE_BERRY action
                 return {
                     "thought": "Sharing brings us closer.",
                     "action": "GIVE_BERRY",
                     "target": target_name,
-                    "message": None,
+                    "message": "Found some extra, here you go.",
                 }
 
     # Social / idle options

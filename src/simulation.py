@@ -40,10 +40,10 @@ def get_agents(alive_only: bool = True) -> list[dict]:
     return [dict(r) for r in rows]
 
 
-def _get_recent_memories(agent_id: str, limit: int = 5) -> list[dict]:
+def _get_recent_memories(agent_id: str, limit: int = 15) -> list[dict]:
     conn = get_conn()
     rows = conn.execute(
-        "SELECT tick, event FROM memories WHERE agent_id=? ORDER BY tick DESC LIMIT ?",
+        "SELECT tick, event, target, message FROM memories WHERE agent_id=? ORDER BY tick DESC LIMIT ?",
         (agent_id, limit),
     ).fetchall()
     conn.close()
@@ -59,12 +59,12 @@ def get_chronicle(limit: int = 30) -> list[dict]:
     return list(reversed([dict(r) for r in rows]))
 
 
-def _add_memory(agent_id: str, tick: int, event: str) -> None:
+def _add_memory(agent_id: str, tick: int, event: str, target: str = None, message: str = None) -> None:
     conn = get_conn()
     with conn:
         conn.execute(
-            "INSERT INTO memories (agent_id, tick, event) VALUES (?, ?, ?)",
-            (agent_id, tick, event),
+            "INSERT INTO memories (agent_id, tick, event, target, message) VALUES (?, ?, ?, ?, ?)",
+            (agent_id, tick, event, target, message),
         )
     conn.close()
 
@@ -99,11 +99,20 @@ def _log_to_file(tick: int, agents: list[dict], berry_count: int) -> None:
 # ------------------------------------------------------------------
 def _build_prompt(agent: dict, agents_at_loc: list[dict], berry_count: int) -> str:
     inventory = json.loads(agent["inventory"])
-    memories  = _get_recent_memories(agent["id"])
-    mem_text  = (
-        "\n".join(f"- (Tick {m['tick']}) {m['event']}" for m in memories)
-        or "None yet."
-    )
+    # Get more memories to trace longer dialogues
+    memories  = _get_recent_memories(agent["id"], limit=20)
+    
+    # Format memories to clearly highlight communication
+    mem_lines = []
+    for m in memories:
+        if "said:" in m["event"] or "Spoke to" in m["event"]:
+             line = f"- (Tick {m['tick']}) [SOCIAL] {m['event']}"
+        else:
+             line = f"- (Tick {m['tick']}) {m['event']}"
+        mem_lines.append(line)
+        
+    mem_text = "\n".join(mem_lines) or "None yet."
+    
     others = [a for a in agents_at_loc if a["id"] != agent["id"]]
     others_text = (
         ", ".join(f"{a['name']} (hunger:{a['hunger']}, energy:{a['energy']})" for a in others)
@@ -124,8 +133,10 @@ STATE:
 WHO IS HERE: {others_text}
 BERRY BUSH:  {berry_count} berries available
 
-RECENT MEMORIES:
+RECENT MEMORIES (Most recent at top):
 {mem_text}
+
+MISSION: Survive and build a society. If someone talks to you, respond naturally. Do not repeat greeting patterns if you just spoke to them.
 
 AVAILABLE ACTIONS:
   MOVE_TO    — target: "fire_pit" | "berry_bush" | "shelter"
@@ -226,8 +237,8 @@ def _apply_action(
                         "UPDATE agents SET community=MIN(10,community+1) WHERE id=?",
                         (tgt["id"],),
                     )
-                _add_memory(agent["id"], tick, f'Spoke to {tgt["name"]}: "{message[:60]}"')
-                _add_memory(tgt["id"], tick, f'{agent["name"]} said: "{message[:60]}"')
+                _add_memory(agent["id"], tick, f'Spoke to {tgt["name"]}: "{message[:60]}"', target=tgt["name"], message=message)
+                _add_memory(tgt["id"], tick, f'{agent["name"]} said: "{message[:60]}"', target=agent["name"], message=message)
                 _add_chronicle(tick, f'💬 {agent["name"]} → {tgt["name"]}: "{message[:120]}"', "TALK", agent['id'])
 
         # ---- GIVE_BERRY ----

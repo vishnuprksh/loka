@@ -15,7 +15,12 @@
 - **Decision:** Python + SQLite + ChromaDB + CLI Visualization.
 - **Reasoning:** Minimizes overhead on frontend development to focus entirely on the LLM-driven autonomy and memory systems.
 
-### 2026-04-13 - Latency Handling (Parallelization)
+### 2026-04-13 - Parallelization Support
 - **Context:** User raised concern about LLM latency exceeding tick interval.
 - **Decision:** Transitioned the simulation loop to use `concurrent.futures.ThreadPoolExecutor` for agent "thinking" cycles.
-- **Reasoning:** Sequential LLM calls stack latency ($\text{Total Latency} = \sum \text{latency}_i$). Parallelization ensures $\text{Total Latency} = \max(\text{latency}_i)$, keeping the tick rate stable as agent count increases.
+- **Reasoning:** Sequential LLM calls stack latency. Parallelization ensures Total Latency is the max latency, keeping the tick rate stable as agent count increases.
+
+### 2026-04-13 - Conversational Continuity & Database Schema Update
+- **Context:** Chats were "one sided" and repetitive because agents lacked context about what was being said to them.
+- **Decision:** Updated `memories` table to store `target` and `message` columns. Modified prompt builder to include a larger window (20) of memories with specific social highlighting. Updated heuristic fallback to "read" the last message from the prompt and respond contextually.
+- **Reasoning:** Without persistent message storage, the LLM/Heuristic only sees the simulation's "event log" but not the actual dialogue content, preventing genuine interaction. Longer memory windows and semantic parsing are needed for conversational coherence.

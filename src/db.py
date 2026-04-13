@@ -38,7 +38,9 @@ def init_db() -> None:
                 id       INTEGER PRIMARY KEY AUTOINCREMENT,
                 agent_id TEXT    NOT NULL,
                 tick     INTEGER NOT NULL,
-                event    TEXT    NOT NULL
+                event    TEXT    NOT NULL,
+                target   TEXT,
+                message  TEXT
             );
 
             CREATE TABLE IF NOT EXISTS chronicle (

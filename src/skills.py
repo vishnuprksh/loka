@@ -191,11 +191,14 @@ class SleepSkill(Skill):
 
 class TalkSkill(Skill):
     name = "TALK"
-    prompt_description = "TALK       — target: agent name at same location, message: short speech"
+    prompt_description = "TALK       — target: agent name at same location (or 'everyone'), message: short speech"
 
     def validate(self, agent, target, message, agents, resource_state, env) -> bool:
         if not target or not message:
             return False
+        if target.lower() == "everyone":
+            return any(a["id"] != agent["id"] and a["location"] == agent["location"] for a in agents)
+            
         return any(
             a["name"].lower() == target.lower() and a["location"] == agent["location"]
             for a in agents
@@ -203,44 +206,76 @@ class TalkSkill(Skill):
         )
 
     def execute(self, agent, target, message, agents, resource_state, env, tick, storage) -> None:
-        tgt = next(
-            (
-                a for a in agents
-                if a["name"].lower() == target.lower() and a["location"] == agent["location"]
-            ),
-            None,
-        )
-        if not tgt:
+        location = agent["location"]
+        is_shout = target.lower() == "everyone"
+        
+        # Agents present at the location (excluding the speaker)
+        listeners = [
+            a for a in agents
+            if a["id"] != agent["id"] and a["location"] == location
+        ]
+        
+        if not listeners:
             return
-            
+
+        # Target specific listener if not a shout
+        tgt_agent = None
+        if not is_shout:
+            tgt_agent = next(
+                (a for a in listeners if a["name"].lower() == target.lower()),
+                None
+            )
+            if not tgt_agent:
+                return
+
         # Clear all pending unanswered messages for the caller as they are now responding/starting a turn
-        # (This is a simplified approach; in a multi-party chat it might be more complex)
         conn = storage.get_conn()
         with conn:
             conn.execute("UPDATE memories SET is_unanswered=0 WHERE agent_id=?", (agent["id"],))
         conn.close()
 
+        # Update community stats
+        # Speaker gets a boost for social behavior
         storage.update_agent(agent["id"], community=min(20, agent["community"] + 2))
-        storage.update_agent(tgt["id"], community=min(20, tgt["community"] + 1))
         
         # Add memory for the speaker
+        target_name = "Everyone" if is_shout else tgt_agent["name"]
         storage.add_memory(
             agent["id"], tick,
-            f'Spoke to {tgt["name"]}: "{message[:60]}"',
-            target=tgt["name"], message=message,
+            f'Spoke to {target_name}: "{message[:60]}"',
+            target=target_name, message=message,
+            location=location
         )
         
-        # Add memory for the listener, marked as unanswered
-        storage.add_memory(
-            tgt["id"], tick,
-            f'{agent["name"]} said: "{message[:60]}"',
-            target=agent["name"], message=message,
-            is_unanswered=1
-        )
+        # Broadcast to all listeners
+        for listener in listeners:
+            # Boost community for listeners
+            storage.update_agent(listener["id"], community=min(20, listener["community"] + 1))
+            
+            # Listener's memory: indicates who said what and the target
+            is_target = (not is_shout and listener["id"] == tgt_agent["id"])
+            if is_target:
+                status_text = f'{agent["name"]} said to you: "{message[:60]}"'
+                is_unanswered = 1
+            else:
+                target_hint = "everyone" if is_shout else tgt_agent["name"]
+                status_text = f'{agent["name"]} (at {location}) said to {target_hint}: "{message[:60]}"'
+                is_unanswered = 0
+            
+            storage.add_memory(
+                listener["id"], tick,
+                status_text,
+                target=(agent["name"] if is_target else target_name), 
+                message=message,
+                is_unanswered=is_unanswered,
+                location=location
+            )
         
+        # Add to global chronicle
+        target_display = "everyone" if is_shout else tgt_agent["name"]
         storage.add_chronicle(
             tick,
-            f'💬 {agent["name"]} → {tgt["name"]}: "{message[:120]}"',
+            f'💬 {agent["name"]} → {target_display}: "{message[:120]}"',
             "TALK",
             agent["id"],
         )

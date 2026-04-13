@@ -59,3 +59,8 @@
 - **Context:** Chats were "one sided" and repetitive because agents lacked context about what was being said to them.
 - **Decision:** Updated `memories` table to store `target` and `message` columns. Modified prompt builder to include a larger window (20) of memories with specific social highlighting. Updated heuristic fallback to "read" the last message from the prompt and respond contextually.
 - **Reasoning:** Without persistent message storage, the LLM/Heuristic only sees the simulation's "event log" but not the actual dialogue content, preventing genuine interaction. Longer memory windows and semantic parsing are needed for conversational coherence.
+
+### 2026-04-13 - Multi-party Location-based Communication
+- **Context:** User requested that communication no longer be one-to-one; anyone in the same location should hear the speech.
+- **Decision:** Refactored `TalkSkill` to broadcast to all agents at the current location. Added a 'location' column to the `memories` table to track where conversations occur. Updated the prompt builder to include a "Nearby" context section showing overheard conversations at the agent's current location. Added support for 'everyone' as a target for broad announcements.
+- **Reasoning:** Simulates realistic spatial audio/social presence. Forcing agents to be "aware" of other conversations in the same location encourages collective emergent behavior rather than isolated bilateral trades.

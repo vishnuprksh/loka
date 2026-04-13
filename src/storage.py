@@ -77,6 +77,7 @@ class StorageBackend(ABC):
         target: str | None = None,
         message: str | None = None,
         is_unanswered: int = 0,
+        location: str | None = None,
     ) -> None: ...
 
     # ---- Chronicle -------------------------------------------------------------
@@ -205,7 +206,7 @@ class SQLiteBackend(StorageBackend):
     def get_recent_memories(self, agent_id: str, limit: int = MEMORY_WINDOW_LIMIT) -> list[dict]:
         conn = get_conn()
         rows = conn.execute(
-            "SELECT tick, event, target, message, is_unanswered FROM memories "
+            "SELECT tick, event, target, message, is_unanswered, location FROM memories "
             "WHERE agent_id=? ORDER BY tick DESC LIMIT ?",
             (agent_id, limit),
         ).fetchall()
@@ -220,12 +221,13 @@ class SQLiteBackend(StorageBackend):
         target: str | None = None,
         message: str | None = None,
         is_unanswered: int = 0,
+        location: str | None = None,
     ) -> None:
         conn = get_conn()
         with conn:
             conn.execute(
-                "INSERT INTO memories (agent_id, tick, event, target, message, is_unanswered) VALUES (?, ?, ?, ?, ?, ?)",
-                (agent_id, tick, event, target, message, is_unanswered),
+                "INSERT INTO memories (agent_id, tick, event, target, message, is_unanswered, location) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (agent_id, tick, event, target, message, is_unanswered, location),
             )
         conn.close()
 

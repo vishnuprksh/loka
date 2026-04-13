@@ -38,21 +38,40 @@ def _build_prompt(agent: dict, agents_at_loc: list[dict], resource_state: dict[s
     unanswered_message = None
     mem_lines = []
     social_memories = []
+    current_location = agent["location"]
+    
     for m in memories:
         status = ""
+        is_relevant_social = False
+        
+        # Check if it's an unanswered direct address
         if m.get("is_unanswered"):
             status = " [UNANSWERED]"
             unanswered_message = m["message"]
+            is_relevant_social = True
         
+        # Identification for social memories (said:, Spoke to, or location-based conversation)
         if "said:" in m["event"] or "Spoke to" in m["event"]:
+            # If the speaker is at the same location, or the listener, highlight it
+            is_relevant_social = True
             line = f"- (Tick {m['tick']}) [SOCIAL]{status} {m['event']}"
-            social_memories.append(line)
         else:
             line = f"- (Tick {m['tick']}){status} {m['event']}"
+            
+        if is_relevant_social:
+            social_memories.append(line)
+        
         mem_lines.append(line)
     
-    # Highlight social context
-    social_context = "\n".join(social_memories) if social_memories else "No recent conversations."
+    # Highlight social context (keep the last few social interactions separate)
+    social_context = "\n".join(social_memories[:10]) if social_memories else "No recent conversations."
+    # If there's a conversation at current location not directly to/by you, help the LLM see it
+    loc_context = ""
+    loc_history = [m for m in memories if m.get("location") == current_location and m not in social_memories]
+    if loc_history:
+        loc_history_list = [f"- (Tick {m['tick']}) Nearby: {m['event']}" for m in loc_history[:5]]
+        loc_context = f"\n\nAT {current_location.upper()}:\n" + "\n".join(loc_history_list)
+
     mem_text = "\n".join(mem_lines) or "None yet."
 
     others = [a for a in agents_at_loc if a["id"] != agent["id"]]
@@ -112,7 +131,7 @@ WORLD RESOURCES:
 {resources_text}
 
 CONVERSATION CONTEXT:
-{social_context}
+{social_context}{loc_context}
 
 RECENT MEMORIES (Most recent at top):
 {mem_text}

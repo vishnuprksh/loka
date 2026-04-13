@@ -49,7 +49,8 @@ def init_db(env=None) -> None:
                 event        TEXT    NOT NULL,
                 target       TEXT,
                 message      TEXT,
-                is_unanswered INTEGER DEFAULT 0
+                is_unanswered INTEGER DEFAULT 0,
+                location     TEXT
             );
 
             CREATE TABLE IF NOT EXISTS chronicle (
@@ -84,23 +85,8 @@ def init_db(env=None) -> None:
 
 def reset_db(env=None) -> None:
     """Clear all simulation data and re-seed resources from env."""
-    # Ensure tables exist before truncating (handles first-run / schema migration)
+    import os
+    if DB_PATH.exists():
+        os.remove(DB_PATH)
+    # Re-initialize the DB from scratch
     init_db(env)
-    conn = get_conn()
-    with conn:
-        conn.execute("DELETE FROM agents")
-        conn.execute("DELETE FROM memories")
-        conn.execute("DELETE FROM chronicle")
-        conn.execute("UPDATE world SET tick=0 WHERE id=1")
-        conn.execute("DELETE FROM world_resources")
-    conn.close()
-    # Re-seed resource counts from environment
-    if env is not None:
-        conn = get_conn()
-        with conn:
-            for res in env.resources.values():
-                conn.execute(
-                    "INSERT OR IGNORE INTO world_resources (name, count, max_count) VALUES (?, ?, ?)",
-                    (res.name, res.max_count, res.max_count),
-                )
-        conn.close()

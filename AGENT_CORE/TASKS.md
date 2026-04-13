@@ -33,7 +33,7 @@
   - [x] Implementation of Hunger/Energy cross-decay (bar <= 3)
   - [x] Mandatory communication for food sharing (Restricted `GIVE_BERRY` to verbal requests only)
   - [x] Reduced transparency (Removed stats of others from prompt)
-  - [ ] Communication Protocol (Speech/Gesture)
+  - [x] Multi-party Communication (Broadcast to same-location agents via `TALK` to "everyone")
   - [ ] Relationship Mapping
   - [ ] Resource/Economic System
 

@@ -1,0 +1,1 @@
+- what if the api calls are slower than the tick itself?

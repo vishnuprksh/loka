@@ -14,3 +14,8 @@
 - **Context:** Deciding how to build the most efficient prototype.
 - **Decision:** Python + SQLite + ChromaDB + CLI Visualization.
 - **Reasoning:** Minimizes overhead on frontend development to focus entirely on the LLM-driven autonomy and memory systems.
+
+### 2026-04-13 - Latency Handling (Parallelization)
+- **Context:** User raised concern about LLM latency exceeding tick interval.
+- **Decision:** Transitioned the simulation loop to use `concurrent.futures.ThreadPoolExecutor` for agent "thinking" cycles.
+- **Reasoning:** Sequential LLM calls stack latency ($\text{Total Latency} = \sum \text{latency}_i$). Parallelization ensures $\text{Total Latency} = \max(\text{latency}_i)$, keeping the tick rate stable as agent count increases.

@@ -13,6 +13,7 @@
   - [x] FastAPI Server + WebSocket Real-time Broadcast (main.py)
   - [x] Observer Portal Frontend (static/index.html)
   - [x] Server running — agents surviving autonomously at tick 37+
+  - [x] Parallelized LLM calls to handle Latency vs. Tick drift
 
 - [ ] **Phase 3: LLM Integration (Real Social Behaviour)**
   - [ ] Set real OPENROUTER_API_KEY in .env

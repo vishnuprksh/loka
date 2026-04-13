@@ -4,6 +4,7 @@ Core simulation engine — world state, agent cognition, tick loop.
 import json
 import os
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 
 from .db import get_conn, _lock
 
@@ -243,7 +244,7 @@ def _apply_action(
 # Main tick
 # ------------------------------------------------------------------
 def tick() -> int:
-    """Advance the simulation by one tick. Safe to call from a thread executor."""
+    """Advance the simulation by one tick. Uses parallel execution for agent thinking."""
     from .llm import call_llm
 
     world     = _get_world()
@@ -263,11 +264,23 @@ def tick() -> int:
     for a in agents:
         loc_map.setdefault(a["location"], []).append(a)
 
+    # 1. Prepare all agent prompts
+    prompts = []
     for agent in agents:
-        at_loc     = loc_map.get(agent["location"], [])
-        prompt     = _build_prompt(agent, at_loc, new_berry)
-        action_data = call_llm(prompt)
+        at_loc = loc_map.get(agent["location"], [])
+        p = _build_prompt(agent, at_loc, new_berry)
+        prompts.append((agent, p))
 
+    # 2. Fire parallel LLM calls
+    def _agent_think(pair: tuple[dict, str]) -> tuple[dict, dict]:
+        agent, p = pair
+        return agent, call_llm(p)
+
+    with ThreadPoolExecutor(max_workers=len(agents) or 1) as executor:
+        results = list(executor.map(_agent_think, prompts))
+
+    # 3. Apply results sequentially (to maintain DB consistency)
+    for agent, action_data in results:
         thought = (action_data.get("thought") or "")[:150]
         conn = get_conn()
         with conn:

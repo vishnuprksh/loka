@@ -9,3 +9,8 @@
 - **Context:** User requested a completely autonomous system with zero interaction after character creation.
 - **Decision:** Remove the "Player Avatar" and "Visitor" roles. The user now enters as an "Observer" or "Chronicler."
 - **Reasoning:** Shifting the focus from a "game" to a "simulated society" requires more robust internal agent motivations and less reliance on player-driven events.
+
+### 2026-04-13 - MVP Tech Stack Lock-in
+- **Context:** Deciding how to build the most efficient prototype.
+- **Decision:** Python + SQLite + ChromaDB + CLI Visualization.
+- **Reasoning:** Minimizes overhead on frontend development to focus entirely on the LLM-driven autonomy and memory systems.

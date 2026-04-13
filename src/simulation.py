@@ -119,11 +119,11 @@ TRAITS: Greed={agent['greed']:.1f}, Sociability={agent['sociability']:.1f}, Curi
 PATH: {agent.get('path', 'Survivor')}
 
 STATE:
-- Hunger:    {agent['hunger']}/{MAX_STAT_VALUE}  (eat if below {HUNGER_THRESHOLD_LOW}! Low hunger makes you TIRED)
-- Energy:    {agent['energy']}/{MAX_STAT_VALUE}  (sleep if below {ENERGY_THRESHOLD_LOW}! Low energy makes you HUNGRY)
-- Community: {agent['community']}/{MAX_STAT_VALUE}
-- Location:  {agent['location']}
-- Inventory: {inventory if inventory else 'empty'}
+- Energy/Fullness: {agent['hunger']}/{MAX_STAT_VALUE}  (0=STARVING, {MAX_STAT_VALUE}=FULL. Eat if below {HUNGER_THRESHOLD_LOW}!)
+- Rest/Vigor:      {agent['energy']}/{MAX_STAT_VALUE}  (0=EXHAUSTED, {MAX_STAT_VALUE}=RESTED. Sleep if below {ENERGY_THRESHOLD_LOW}!)
+- Community:       {agent['community']}/{MAX_STAT_VALUE}
+- Location:        {agent['location']}
+- Inventory:       {inventory if inventory else 'empty'}
 
 WHO IS HERE: {others_text}
 

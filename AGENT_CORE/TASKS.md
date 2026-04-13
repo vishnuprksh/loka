@@ -34,6 +34,7 @@
   - [x] Mandatory communication for food sharing (Restricted `GIVE_BERRY` to verbal requests only)
   - [x] Reduced transparency (Removed stats of others from prompt)
   - [x] Multi-party Communication (Broadcast to same-location agents via `TALK` to "everyone")
+  - [x] Improved prompt clarity for Hunger/Energy bars (0=Empty, 10=Full)
   - [ ] Relationship Mapping
   - [ ] Resource/Economic System
 

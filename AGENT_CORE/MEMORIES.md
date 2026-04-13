@@ -1,4 +1,9 @@
 # Strategic Memories
+### 2026-04-13 - State Bar Renaming for Prompt Clarity
+- **Context:** Agents (e.g., Dax) were confused by "Hunger: 9/10," thinking it meant they were 90% hungry rather than 90% full.
+- **Decision:** Renamed prompt labels to "Energy/Fullness" and "Rest/Vigor" with explicit 0=STARVING/EXHAUSTED and 10=FULL/RESTED indicators.
+- **Reasoning:** Improving prompt clarity prevents agents from wasting actions on foraging/sleeping when they are already at near-max capacity, leading to more efficient survival and more time for social/path-related goals.
+
 ### 2026-04-13 - Removed Cross-Decay & Increased Thresholds
 - **Context:** Dax and Kael died due to a "death spiral" where low hunger/energy drained each other too quickly for agents to react or ask for help.
 - **Decision:** Removed the cross-decay logic from `src/storage.py` and increased `HUNGER_THRESHOLD_LOW` / `ENERGY_THRESHOLD_LOW` from 3 to 5 in `src/config.py`.

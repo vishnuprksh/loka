@@ -4,8 +4,8 @@ Configuration constants for the simulation.
 
 # Agent Stats
 MAX_STAT_VALUE = 10
-HUNGER_THRESHOLD_LOW = 3
-ENERGY_THRESHOLD_LOW = 3
+HUNGER_THRESHOLD_LOW = 5
+ENERGY_THRESHOLD_LOW = 5
 
 # Resource Balancing
 DEFAULT_BERRY_MAX = 5

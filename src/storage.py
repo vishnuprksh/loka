@@ -276,15 +276,6 @@ class SQLiteBackend(StorageBackend):
                     "UPDATE agents SET energy=MAX(0,energy-1) WHERE alive=1 AND location!='shelter' AND location!='fire_pit'"
                 )
 
-            # Starvation/Exhaustion penalty: -1 to other stats if bar is 3 or less
-            # Hunger <= 3 causes fatigue (energy loss)
-            conn.execute(
-                "UPDATE agents SET energy=MAX(0, energy-1) WHERE alive=1 AND hunger<=3"
-            )
-            # Energy <= 3 causes starvation (hunger loss)
-            conn.execute(
-                "UPDATE agents SET hunger=MAX(0, hunger-1) WHERE alive=1 AND energy<=3"
-            )
         conn.close()
 
     def kill_starved_agents(self) -> list[dict]:

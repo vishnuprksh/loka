@@ -1,8 +1,13 @@
 # Strategic Memories
-### 2026-04-13 - Survival Interdependency
+### 2026-04-13 - Removed Cross-Decay & Increased Thresholds
+- **Context:** Dax and Kael died due to a "death spiral" where low hunger/energy drained each other too quickly for agents to react or ask for help.
+- **Decision:** Removed the cross-decay logic from `src/storage.py` and increased `HUNGER_THRESHOLD_LOW` / `ENERGY_THRESHOLD_LOW` from 3 to 5 in `src/config.py`.
+- **Reasoning:** Giving agents a larger safety buffer (5 instead of 3) and removing the double-drain penalty makes the simulation more forgiving and allows more time for social intervention (asking for food) before death.
+
+### 2026-04-13 - Survival Interdependency (Obsolete)
 - **Context:** Decoupled stats allow for easier survival without consequences until zero.
 - **Decision:** Implemented cross-decay where Hunger <= 3 causes Energy loss, and Energy <= 3 causes Hunger loss.
-- **Reasoning:** Encourages proactive survival management and creates a "desperation" phase where one failure cascades into another. Added explicit warnings to agent prompts to ensure the AI understands these mechanics.
+- **Reasoning:** Superseded by "Removed Cross-Decay" decision due to unintended agent death spirals.
 
 ### 2026-04-13 - Modularized Simulation Constants
 - **Context:** User requested lowering max stats from 20 to 10 and requested a modular way to manage these values.

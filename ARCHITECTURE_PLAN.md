@@ -3,29 +3,23 @@
 This document outlines the high-level architecture for **Loka**, a virtual world where AI agents and human players collaborate to build a society.
 
 ## 1. System Overview
-The architecture is divided into four primary layers:
-1.  **Simulation Layer:** The "Engine" that maintains the world state and time.
-2.  **Cognitive Layer:** The "Brain" of the AI agents.
-3.  **Interaction Layer:** The "Social Fabric" enabling communication and economy.
-4.  **Interface Layer:** The "Window" through which humans interact with the world.
+The architecture is a **Fully Autonomous Society Engine**:
+1.  **Simulated Reality:** An independent environment that runs at a constant tick-rate.
+2.  **Cognitive Architecture:** The "Autonomous Brain" for each agent.
+3.  **Societal Layer:** Emerging structures like hierarchy, trade, and language.
+4.  **Observer Portal:** The user interface for watching, analyzing, and "birthing" new agents.
 
 ---
 
 ## 2. Component Breakdown
 
 ### A. Simulation Layer (The World)
-- **State Engine:** A central service (Node.js/Go/Python) that tracks the position and status of every entity.
-- **Temporal Loop:** A tick-based system that advances world time and triggers agent updates.
-- **Spatial Awareness:** A grid or region-based system to handle local interactions efficiently.
+- **Engine:** A headless server (Python/FastAPI or Node.js) that computes the "next state" of the grove based on agent intents.
+- **Time Compression:** Support for "Fast Forwarding" to see how the society looks after 100 interaction cycles.
 
-### B. Cognitive Layer (The Agents)
-- **Persona Engine:** Defines traits, goals, and backgrounds for each agent.
-- **Memory Stream:** (Vector DB) Stores past interactions and observations.
-- **Reasoning Loop:** 
-    - **Perception:** What do I see/hear?
-    - **Reflection:** What does this mean for me?
-    - **Planning:** What should I do next?
-    - **Action:** How do I execute it?
+### B. Cognitive Layer (The Autonomous Person)
+- **Intrinsic Motivation:** Instead of responding to user commands, agents have "Desires" (e.g., "Build a legacy," "Hoard resources," "Make friends").
+- **Intention Engine:** Agents broadcast "Intended Actions" to the simulation layer.
 
 ### C. Interaction Layer (Society)
 - **Dialogue System:** LLM-driven natural language interaction between agents and players.

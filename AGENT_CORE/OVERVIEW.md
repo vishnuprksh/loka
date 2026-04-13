@@ -1,16 +1,16 @@
 # Project Overview: Loka
-**North Star:** Create a living virtual world where AI agents interact, evolve, and build a self-sustaining society alongside human-controlled avatars.
+**North Star:** Create a fully autonomous virtual world where AI agents live, interact, and evolve their own society without human intervention, where users are observers of an emerging civilization.
 
 **Core Architecture:**
-- **Frontend:** Real-time 2D/3D visualization (e.g., Unity, Three.js, or Godot).
-- **Backend:** Scalable microservices for world state, agent logic, and social dynamics.
-- **AI Engine:** LLM-powered cognitive architecture for agents (Long-term memory, planning, and persona).
-- **Database:** Vector database for agent memories + Relational/NoSQL for world state.
+- **Frontend:** Real-time 2D/3D visualization for observation (The "Observer Portal").
+- **Backend:** High-throughput autonomous simulation engine (World State + Agent Tick).
+- **AI Engine:** Self-driving cognitive loop for agents (Observation -> Reflection -> Intent -> Action).
+- **Database:** Persistence for agent life histories and societal evolution.
 
 **Guiding Principles:**
-- **Emergent Behavior:** Focus on simple rules that lead to complex social outcomes.
-- **Persistence:** The world continues to evolve even when human players are offline.
-- **Agency:** AI agents must have unique desires, memories, and the ability to influence others.
+- **Zero-Touch Autonomy:** Agents make all decisions; users only observe.
+- **Emergent Society:** Rules, hierarchies, and culture should emerge from agent interactions.
+- **Persistence:** The simulation runs continuously, even when no user is watching.
 
 **Constraints:**
 - Scalability of LLM calls (Cost and Latency).

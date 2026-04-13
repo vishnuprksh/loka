@@ -35,7 +35,8 @@ To create tension and growth, each agent will be assigned a simple "Drive":
 
 ---
 
-## 5. First Proto-Rules (The "Loka Code")
-1.  **Must Eat:** If Hunger = 0, agent "leaves" the grove (deletion).
-2.  **Shared Memory:** Agents will talk about who brought berries the day before.
-3.  **Human Presence:** You enter as "The Visitor" (Avatar) to see how they react to a new member.
+## 5. The "Observer" Experience
+Since the user cannot interact, their experience is purely observational:
+1.  **Creation:** The user defines the "Genes" of an agent (Personality, Ambition, Initial Knowledge).
+2.  **The Chronicle:** An automated "Loka Log" that summarizes what happened while the user was away (e.g., *"Today, Agent Alpha and Beta built a wall during your absence."*).
+3.  **Insight:** The interface shows what an agent is "Thinking" vs what they are "Doing" in real-time.

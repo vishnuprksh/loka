@@ -67,6 +67,7 @@
       align-items: center;
       border-right: 1px solid var(--border);
       flex-shrink: 0;
+      width: 640px;
     }
     #panel-grid .section-title {
       color: var(--muted);
@@ -332,7 +333,7 @@
 <script>
 // ── Constants ──────────────────────────────────────────────────────
 const GRID       = 20;
-const CANVAS_SIZE = 360;
+const CANVAS_SIZE = 600;
 const CELL       = CANVAS_SIZE / GRID;
 
 const LOC_POS = {
@@ -354,6 +355,9 @@ const AGENT_PALETTE = [
   '#58a6ff','#3fb950','#d29922','#bc8cff',
   '#f0883e','#79c0ff','#56d364','#ffa657',
 ];
+
+// Active speech bubbles
+let activeBubbles = [];
 
 const canvas = document.getElementById('worldCanvas');
 const ctx    = canvas.getContext('2d');
@@ -454,9 +458,68 @@ function drawWorld(state) {
       // Name tag below
       ctx.font = `${CELL * 0.28}px monospace`;
       ctx.fillStyle = color;
-      ctx.fillText(agent.name.slice(0, 5), ax, ay + r + 6);
+      ctx.fillText(agent.name.slice(0, 5), ax, ay + r + 10);
+      
+      // Render speech bubble if active
+      const bubble = activeBubbles.find(b => b.name === agent.name);
+      if (bubble && bubble.ticks > 0) {
+        drawSpeechBubble(ax, ay - r - 10, bubble.msg, bubble.ticks);
+      }
     });
   }
+}
+
+function drawSpeechBubble(x, y, text, ticks) {
+  const alpha = Math.min(1, ticks / 5); // Fade out last 5 ticks
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  
+  const padding = 8;
+  const fontSize = 14;
+  ctx.font = `${fontSize}px monospace`;
+  
+  // Wrap/truncate text
+  const maxWidth = 180;
+  let displayContent = text;
+  if (ctx.measureText(text).width > maxWidth) {
+     displayContent = text.slice(0, 25) + "...";
+  }
+  
+  const w = Math.min(maxWidth, metrics.width + padding * 2);
+  const h = fontSize + padding * 2;
+  const bx = x - w / 2;
+  const by = y - h - 10;
+  
+  // Rounded bubble background
+  ctx.fillStyle = "rgba(22, 27, 34, 0.95)";
+  ctx.strokeStyle = "#58a6ff";
+  ctx.lineWidth = 1.5;
+  
+  const r = 8;
+  ctx.beginPath();
+  ctx.moveTo(bx + r, by);
+  ctx.lineTo(bx + w - r, by);
+  ctx.quadraticCurveTo(bx + w, by, bx + w, by + r);
+  ctx.lineTo(bx + w, by + h - r);
+  ctx.quadraticCurveTo(bx + w, by + h, bx + w - r, by + h);
+  ctx.lineTo(bx + w / 2 + 5, by + h);
+  ctx.lineTo(bx + w / 2, by + h + 8); // Pointer
+  ctx.lineTo(bx + w / 2 - 5, by + h);
+  ctx.lineTo(bx + r, by + h);
+  ctx.quadraticCurveTo(bx, by + h, bx, by + h - r);
+  ctx.lineTo(bx, by + r);
+  ctx.quadraticCurveTo(bx, by, bx + r, by);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  
+  // Text
+  ctx.fillStyle = "#e6edf3";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(displayContent, bx + w / 2, by + h / 2);
+  
+  ctx.restore();
 }
 
 // ── Agent cards ───────────────────────────────────────────────────
@@ -522,6 +585,31 @@ function renderChronicle(entries) {
 function applyState(s) {
   document.getElementById('tick-display').textContent  = `Tick: ${s.tick}`;
   document.getElementById('berry-display').textContent = `🫐 ${s.berry_count}`;
+  
+  // Tick down active bubbles
+  activeBubbles.forEach(b => b.ticks--);
+  activeBubbles = activeBubbles.filter(b => b.ticks > 0);
+  
+  // Check for new talk events in chronicle
+  const newTalks = s.chronicle.filter(e => e.tick === s.tick && e.entry.includes('💬'));
+  newTalks.forEach(t => {
+     // Format in src/skills.py: 💬 [Agent] → [Target]: "[Message]"
+     const talkRegex = /💬\s+(.*?)\s+→\s+(.*?):\s+"(.*)"/;
+     const match = t.entry.match(talkRegex);
+     if (match) {
+        const [_, name, target, rawMsg] = match;
+        const msg = rawMsg.trim();
+        // Upsert bubble
+        const existing = activeBubbles.find(b => b.name === name);
+        if (existing) {
+           existing.msg = msg;
+           existing.ticks = 20; // Last for 20 simulation ticks
+        } else {
+           activeBubbles.push({ name: name, msg: msg, ticks: 20 });
+        }
+     }
+  });
+
   drawWorld(s);
   renderAgents(s.agents);
   renderChronicle(s.chronicle);

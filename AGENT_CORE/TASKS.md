@@ -27,7 +27,9 @@
   - [ ] Phase 2: Spatial partitioning + LLM batching + memory summarization
   - [ ] Phase 3: Selective WebSocket broadcast
 
-- [ ] **Phase 3: Social & Interaction Layer**
+- [ ] **Phase 4: Social & Interaction Layer**
+  - [x] Balanced survival stats to encourage social interaction (Stats max 20, slower decay)
+  - [x] Reduced berry availability to increase scarcity and drive interaction
   - [ ] Communication Protocol (Speech/Gesture)
   - [ ] Relationship Mapping
   - [ ] Resource/Economic System

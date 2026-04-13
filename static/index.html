@@ -529,9 +529,18 @@ function renderAgents(agents) {
   list.innerHTML = '';
   for (const a of agents) {
     const color = agentColor(a.name);
-    const inv   = a.inventory.length
-      ? a.inventory.map(i => `<span class="inv-badge">${i}</span>`).join(' ')
-      : '<span style="color:var(--muted);font-size:.65rem">empty</span>';
+    
+    // Count summary of inventory items
+    const invCounts = {};
+    a.inventory.forEach(item => {
+      invCounts[item] = (invCounts[item] || 0) + 1;
+    });
+    
+    const invSummary = Object.entries(invCounts).map(([item, count]) => {
+      return `<span class="inv-badge">${item} x${count}</span>`;
+    }).join(' ');
+
+    const inv = a.inventory.length ? invSummary : '<span style="color:var(--muted);font-size:.65rem">empty</span>';
 
     const card = document.createElement('div');
     card.className = 'agent-card' + (a.alive ? '' : ' dead');
@@ -560,17 +569,17 @@ function renderAgents(agents) {
 function statBar(label, val, cls) {
   return `<div class="stat">
     <span class="stat-label">${label}</span>
-    <div class="stat-bar"><div class="stat-fill ${cls}" style="width:${val * 10}%"></div></div>
-    <span class="stat-num">${val}/10</span>
+    <div class="stat-bar"><div class="stat-fill ${cls}" style="width:${val * 5}%"></div></div>
+    <span class="stat-num">${val}/20</span>
   </div>`;
 }
 
 // ── Chronicle ─────────────────────────────────────────────────────
-let lastChronicleEntry = '';
+let lastStateTick = -1;
 
-function renderChronicle(entries) {
-  if (entries.length > 0 && entries[0].entry === lastChronicleEntry) return;
-  lastChronicleEntry = entries.length > 0 ? entries[0].entry : '';
+function renderChronicle(entries, tick) {
+  if (tick === lastStateTick) return;
+  lastStateTick = tick;
 
   const log = document.getElementById('chronicle-log');
   log.innerHTML = '';
@@ -613,7 +622,7 @@ function applyState(s) {
 
   drawWorld(s);
   renderAgents(s.agents);
-  renderChronicle(s.chronicle);
+  renderChronicle(s.chronicle, s.tick);
 }
 
 // ── WebSocket ─────────────────────────────────────────────────────

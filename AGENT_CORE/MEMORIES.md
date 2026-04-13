@@ -1,4 +1,9 @@
 # Strategic Memories
+### 2026-04-13 - Reduced Resource Abundance to Drive Social Interaction
+- **Context:** Observed that survival being "too easy" led to reduced social interaction as agents became self-sufficient.
+- **Decision:** Reduced berry `max_count` (20 -> 10) and `harvest_yield` (2 -> 1). Updated frontend to show inventory counts (e.g., "berry x5") to better visualize scale.
+- **Reasoning:** Scarcity is a primary driver of societal development, trade, and social negotiation.
+
 ### 2026-04-13 - Relaxed Agent Survival Stats
 - **Context:** Agents were overly focused on survival (hunger/energy) due to rapid stat depletion, stifling social interaction.
 - **Decision:** Doubled max stats (10 -> 20), halved decay frequency (tick-based logic), and updated prompt thresholds.

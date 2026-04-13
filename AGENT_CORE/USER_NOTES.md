@@ -1,1 +1,3 @@
 - what if the api calls are slower than the tick itself?
+- if the survival is the primary objective, people intract very less, because they have to fight always
+- if the survival is not a problem at all, people becomes lazy to talk becasue, they don't have any purpose

@@ -91,10 +91,10 @@ THE_GROVE = Environment(
     resources={
         "berry": Resource(
             name="berry",
-            max_count=20,
+            max_count=10,
             regen_per_tick=1,
             harvest_locations=["berry_bush"],
-            harvest_yield=2,
+            harvest_yield=1,
             hunger_value=3,
             icon="🫐",
         ),

@@ -11,6 +11,7 @@
 - **Zero-Touch Autonomy:** Agents make all decisions; users only observe.
 - **Emergent Society:** Rules, hierarchies, and culture should emerge from agent interactions.
 - **Persistence:** The simulation runs continuously, even when no user is watching.
+- **Informed Agency:** Agents should have access to world rules and mechanics to make better survival and social decisions.
 
 **Constraints:**
 - Scalability of LLM calls (Cost and Latency).

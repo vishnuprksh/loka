@@ -15,7 +15,7 @@ from .skills import SKILL_REGISTRY, SkillRegistry
 from .storage import SQLiteBackend, StorageBackend
 from .config import (
     MAX_STAT_VALUE, HUNGER_THRESHOLD_LOW, ENERGY_THRESHOLD_LOW,
-    MEMORY_WINDOW_LIMIT, DEFAULT_TICK_INTERVAL
+    MEMORY_WINDOW_LIMIT, DEFAULT_TICK_INTERVAL, DEFAULT_BERRY_HUNGER
 )
 
 TICK_INTERVAL = int(os.getenv("TICK_INTERVAL", str(DEFAULT_TICK_INTERVAL)))
@@ -115,10 +115,26 @@ def _build_prompt(agent: dict, agents_at_loc: list[dict], resource_state: dict[s
     if agent['community'] < 4:
         social_urge = "\n\nURGENT: Your Community level is dangerously low. You are feeling isolated. Seek out others and speak with them to restore your spirit."
 
+    world_info = f"""--- THE WORLD ---
+LOCATIONS: {locations_text}
+TICK: The world runs in discrete steps called 'ticks'. Each action happens in a tick.
+STATS & SURVIVAL:
+- Fullness/Rest: Keep them above 0 to survive. If either hits 0, you die.
+- Hunger stabilization: EAT can restore fullness. (e.g., eating a berry gives {DEFAULT_BERRY_HUNGER} points). Keep food in inventory.
+- Energy stabilization: SLEEP restores energy. Productivity is better at the 'shelter'. 
+- Social Bar (Community): This tracks your social status. Unlike other bars, this is VISIBLE to others and determines your popularity/influence. Stay social to keep it high.
+ECONOMY:
+- Money: Gold is used for trading.
+- Trading: You can PAY others for items or use OFFER_FOR_SALE. Negotiation is key.
+"""
+    custom_info = agent.get("info", "")
+    info_section = f"\n\n--- AGENT INFO ---\n{world_info}\n{custom_info}"
+
     return f"""You are {agent['name']}, an autonomous agent in {ENV.name}.
 
 TRAITS: Greed={agent['greed']:.1f}, Sociability={agent['sociability']:.1f}, Curiosity={agent['curiosity']:.1f}, Empathy={agent.get('empathy', 0.5):.1f}, Assertiveness={agent.get('assertiveness', 0.5):.1f}
 PATH: {agent.get('path', 'Survivor')}
+{info_section}
 
 STATE:
 - Energy/Fullness: {agent['hunger']}/{MAX_STAT_VALUE}  (0=STARVING, {MAX_STAT_VALUE}=FULL. Eat if below {HUNGER_THRESHOLD_LOW}!)

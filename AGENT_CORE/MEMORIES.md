@@ -1,4 +1,14 @@
 # Strategic Memories
+### 2026-04-14 - Implementing Informed Agency
+- **Context:** Agents were dying or making poor decisions due to lack of knowledge about world mechanics (stats, resources, trading).
+- **Decision:** Added a dedicated "Info Section" to agent prompts and a persistent `info` field in the database for personalized agent knowledge. 
+- **Reasoning:** Providing explicit mechanics (e.g., "berry gives 5 points") reduces "hallucinated" strategies and allows agents to plan survival and social moves more effectively. Social bar visibility is key for emergent popularity dynamics.
+
+### 2026-04-14 - Berry Hunger Restoration Increased
+- **Context:** Eating a berry should restore a meaningful amount of hunger rather than a minimal amount.
+- **Decision:** Set `DEFAULT_BERRY_HUNGER` to 5 in [src/config.py](src/config.py).
+- **Reasoning:** A stronger food reward makes berry consumption materially useful during survival pressure while preserving the existing scarcity tuning.
+
 ### 2026-04-13 - Global Death Notifications
 - **Context:** Previously, when an agent died, it was only recorded in the system chronicle. Other agents remained unaware unless they were at the same location (and even then, only via vague history).
 - **Decision:** Modified [src/simulation.py](src/simulation.py) to broadcast a "perished" memory to all surviving agents whenever an agent dies.

@@ -18,6 +18,8 @@
 
 - [ ] **Phase 3: Modular Architecture (Phase 1 complete)**
   - [x] `src/environment.py` — `Location`, `Resource`, `Environment`, `THE_GROVE`
+  - [x] Implement Info Section for agents (World mechanics, bar stabilization, trading)
+  - [ ] Support dynamic `info` field in `agents` table
   - [x] `src/storage.py` — `StorageBackend` ABC + `SQLiteBackend`
   - [x] `src/skills.py` — `Skill` ABC, `SkillRegistry`, all 7 skills, `SKILL_REGISTRY`
   - [x] `src/db.py` — updated schema (`world_resources` table, env-seeding)
@@ -30,6 +32,7 @@
 - [ ] **Phase 4: Social & Interaction Layer**
   - [x] Balanced survival stats to encourage social interaction (Stats max 20, **Decay: 1 per tick**)
   - [x] Reduced berry availability to increase scarcity and drive interaction
+  - [x] Increased berry hunger restoration to 5 per berry
   - [x] Implementation of Hunger/Energy cross-decay (bar <= 3)
   - [x] Mandatory communication for food sharing (Restricted `GIVE_BERRY` to verbal requests only)
   - [x] Reduced transparency (Removed stats of others from prompt)

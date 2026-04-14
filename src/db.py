@@ -39,6 +39,7 @@ def init_db(env=None) -> None:
                 money        INTEGER NOT NULL DEFAULT 10,
                 alive        INTEGER NOT NULL DEFAULT 1,
                 path         TEXT    NOT NULL DEFAULT 'survivor',
+                info         TEXT    NOT NULL DEFAULT '',
                 created_tick INTEGER NOT NULL DEFAULT 0,
                 last_thought TEXT    NOT NULL DEFAULT ''
             );

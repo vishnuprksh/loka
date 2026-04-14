@@ -98,13 +98,15 @@ def _build_prompt(agent: dict, agents_at_loc: list[dict], resource_state: dict[s
     )
 
     path_missions = {
-        "Performer": "YOUR PATH: The Performer (Yellow). Survival through charm and social influence. Build community, entertain, and maintain enthusiasm to keep morale high.",
-        "Scholar": "YOUR PATH: The Scholar (Blue). Survival through knowledge and precision. Observe patterns, analyze resources, and provide the group with systematic insights.",
-        "Commoner": "YOUR PATH: The Commoner (Green). Survival through stability and harmony. Be reliable, support others, and ensure the community remains peaceful and steady.",
-        "Leader": "YOUR PATH: The Leader (Red). Survival through decisive action and results. Take charge, prioritize efficiency, and lead the group toward clear objectives.",
+        "Performer": "YOUR PATH: The Performer (Yellow). Survival through charm and social influence. Build community, entertain, and maintain enthusiasm to keep morale high. TRADE: Use your influence to gather resources from others.",
+        "Scholar": "YOUR PATH: The Scholar (Blue). Survival through knowledge and precision. Observe patterns, analyze resources, and provide the group with systematic insights. TRADE: Your knowledge is valuable; maybe you can sell your findings?",
+        "Commoner": "YOUR PATH: The Commoner (Green). Survival through stability and harmony. Be reliable, support others, and ensure the community remains peaceful and steady. TRADE: Fair trades ensure stability for everyone.",
+        "Leader": "YOUR PATH: The Leader (Red). Survival through decisive action and results. Take charge, prioritize efficiency, and lead the group toward clear objectives. TRADE: Manage the group's wealth to ensure mission success.",
     }
     path_instruction = path_missions.get(agent.get("path"), "YOUR PATH: The Survivor. Do what you must to stay alive.")
 
+    economy_instruction = "\n\nECONOMY: Gold is the medium of exchange. You can PAY others for goods or OFFER_FOR_SALE items to earn Gold. Your 'Greed' trait (0-1) influences how much you value wealth vs. social harmony."
+    
     mandatory_reply_instruction = ""
     if unanswered_message:
         mandatory_reply_instruction = f"\n\nCRITICAL: {unanswered_message} was just said to you. Social harmony is key. You MUST respond in this tick using the TALK action to the correct target. If you are too hungry/tired to talk, at least acknowledge them briefly before leaving."
@@ -122,6 +124,7 @@ STATE:
 - Energy/Fullness: {agent['hunger']}/{MAX_STAT_VALUE}  (0=STARVING, {MAX_STAT_VALUE}=FULL. Eat if below {HUNGER_THRESHOLD_LOW}!)
 - Rest/Vigor:      {agent['energy']}/{MAX_STAT_VALUE}  (0=EXHAUSTED, {MAX_STAT_VALUE}=RESTED. Sleep if below {ENERGY_THRESHOLD_LOW}!)
 - Community:       {agent['community']}/{MAX_STAT_VALUE}
+- Wealth (Gold):   {agent.get('money', 0)}
 - Location:        {agent['location']}
 - Inventory:       {inventory if inventory else 'empty'}
 
@@ -136,7 +139,7 @@ CONVERSATION CONTEXT:
 RECENT MEMORIES (Most recent at top):
 {mem_text}
 
-MISSION: Survive and build a society. {path_instruction}{mandatory_reply_instruction}{social_urge}
+MISSION: Survive and build a society. {path_instruction}{economy_instruction}{mandatory_reply_instruction}{social_urge}
 
 AVAILABLE ACTIONS:
   {skill_lines_text}
@@ -325,6 +328,7 @@ def get_state_dict() -> dict:
                 "curiosity":    a["curiosity"],
                 "empathy":      a.get("empathy", 0.5),
                 "assertiveness": a.get("assertiveness", 0.5),
+                "money":        a.get("money", 0),
                 "hunger":       a["hunger"],
                 "energy":       a["energy"],
                 "community":    a["community"],

@@ -36,6 +36,7 @@ def init_db(env=None) -> None:
                 community    INTEGER NOT NULL DEFAULT 5,
                 location     TEXT    NOT NULL DEFAULT 'fire_pit',
                 inventory    TEXT    NOT NULL DEFAULT '[]',
+                money        INTEGER NOT NULL DEFAULT 10,
                 alive        INTEGER NOT NULL DEFAULT 1,
                 path         TEXT    NOT NULL DEFAULT 'survivor',
                 created_tick INTEGER NOT NULL DEFAULT 0,

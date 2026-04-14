@@ -345,6 +345,82 @@ class GiveBerrySkill(Skill):
         )
 
 
+class PaySkill(Skill):
+    name = "PAY"
+    prompt_description = "PAY        — target: agent name at same location, message: amount (integer)"
+
+    def validate(self, agent, target, message, agents, resource_state, env) -> bool:
+        try:
+            amount = int(message)
+            if amount <= 0:
+                return False
+        except ValueError:
+            return False
+
+        if agent.get("money", 0) < amount:
+            return False
+
+        return any(
+            a["name"].lower() == target.lower() and a["location"] == agent["location"]
+            for a in agents
+            if a["id"] != agent["id"]
+        )
+
+    def execute(self, agent, target, message, agents, resource_state, env, tick, storage) -> None:
+        try:
+            amount = int(message)
+        except ValueError:
+            return
+
+        target_agent = next(
+            (a for a in agents if a["name"].lower() == target.lower() and a["location"] == agent["location"]),
+            None
+        )
+        if not target_agent:
+            return
+
+        # Transfer money
+        storage.update_agent(agent["id"], money=agent["money"] - amount)
+        storage.update_agent(target_agent["id"], money=target_agent["money"] + amount)
+
+        # Update memories
+        storage.add_memory(agent["id"], tick, f"Paid {amount} gold to {target_agent['name']}")
+        storage.add_memory(target_agent["id"], tick, f"Received {amount} gold from {agent['name']}")
+        
+        storage.add_chronicle(
+            tick,
+            f"💰 {agent['name']} paid {amount} gold to {target_agent['name']}",
+            "PAY",
+            agent["id"],
+        )
+
+
+class OfferForSaleSkill(Skill):
+    name = "OFFER_FOR_SALE"
+    prompt_description = "OFFER_FOR_SALE — target: item name, message: price (e.g. 'Selling berry for 5 gold')"
+
+    def validate(self, agent, target, message, agents, resource_state, env) -> bool:
+        inventory = json.loads(agent["inventory"])
+        # target should be the item name
+        return target.lower() in [i.lower() for i in inventory]
+
+    def execute(self, agent, target, message, agents, resource_state, env, tick, storage) -> None:
+        # This is primarily a social signal stored in memory and chronicle
+        storage.add_memory(agent["id"], tick, f"Offered {target} for sale: {message}")
+        
+        # Notify others at the location
+        for a in agents:
+            if a["location"] == agent["location"] and a["id"] != agent["id"]:
+                storage.add_memory(a["id"], tick, f"{agent['name']} is selling {target}: {message}")
+
+        storage.add_chronicle(
+            tick,
+            f"📢 {agent['name']} offered {target} for sale: {message}",
+            "TRADE",
+            agent["id"],
+        )
+
+
 class DoNothingSkill(Skill):
     name = "DO_NOTHING"
     prompt_description = "DO_NOTHING"
@@ -367,4 +443,6 @@ SKILL_REGISTRY.register(EatSkill())
 SKILL_REGISTRY.register(SleepSkill())
 SKILL_REGISTRY.register(TalkSkill())
 SKILL_REGISTRY.register(GiveBerrySkill())
+SKILL_REGISTRY.register(PaySkill())
+SKILL_REGISTRY.register(OfferForSaleSkill())
 SKILL_REGISTRY.register(DoNothingSkill())

@@ -44,6 +44,7 @@
     header h1 { font-size: 1.2rem; color: var(--green); letter-spacing: 1px; }
     #tick-display { color: var(--muted); font-size: 0.85rem; }
     #berry-display { color: var(--green); font-size: 0.85rem; margin-left: auto; }
+    #gold-display { color: var(--yellow); font-size: 0.85rem; }
     #conn-dot {
       width: 8px; height: 8px; border-radius: 50%;
       background: var(--red);
@@ -86,6 +87,13 @@
       margin-top: 8px;
       font-size: 0.7rem;
       color: var(--muted);
+      flex-wrap: wrap;
+    }
+    .legend-pill {
+      padding: 3px 8px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.02);
     }
 
     /* ── Agents panel ── */
@@ -147,6 +155,7 @@
     .stat-fill.hunger    { background: var(--yellow); }
     .stat-fill.energy    { background: var(--green); }
     .stat-fill.community { background: var(--blue); }
+    .stat-fill.money     { background: var(--orange); }
     .stat-num { font-size: .6rem; color: var(--muted); margin-top: 2px; }
 
     .trait-row { display: flex; gap: 5px; margin-top: 6px; flex-wrap: wrap; }
@@ -165,6 +174,24 @@
       padding: 1px 7px;
       margin-top: 4px;
       display: inline-block;
+    }
+    .money-badge {
+      font-size: .6rem;
+      color: var(--yellow);
+      background: rgba(240, 136, 62, 0.12);
+      border: 1px solid rgba(240, 136, 62, 0.7);
+      border-radius: 10px;
+      padding: 1px 7px;
+      margin-top: 4px;
+      display: inline-block;
+    }
+    .c-entry.pay,
+    .c-entry.trade {
+      color: #ffd38a;
+    }
+    .c-entry.pay .c-tick,
+    .c-entry.trade .c-tick {
+      color: var(--orange);
     }
 
     /* ── Right column ── */
@@ -271,6 +298,7 @@
   <h1>⧭ LOKA — The Grove</h1>
   <span id="tick-display">Tick: 0</span>
   <span id="berry-display">🫐 20</span>
+  <span id="gold-display">💰 0</span>
 </header>
 
 <main>
@@ -280,9 +308,10 @@
     <div class="section-title">THE GROVE</div>
     <canvas id="worldCanvas"></canvas>
     <div id="legend">
-      <span>🔥 Fire Pit</span>
-      <span>🫐 Berries</span>
-      <span>🛖 Shelter</span>
+      <span class="legend-pill">🔥 Fire Pit</span>
+      <span class="legend-pill">🫐 Berries</span>
+      <span class="legend-pill">🛖 Shelter</span>
+      <span class="legend-pill">💰 Gold powers trade</span>
     </div>
   </div>
 
@@ -553,6 +582,7 @@ function renderAgents(agents) {
     }).join(' ');
 
     const inv = a.inventory.length ? invSummary : '<span style="color:var(--muted);font-size:.65rem">empty</span>';
+    const money = `<span class="money-badge">💰 ${a.money ?? 0} gold</span>`;
 
     const card = document.createElement('div');
     card.className = 'agent-card' + (a.alive ? '' : ' dead');
@@ -571,12 +601,13 @@ function renderAgents(agents) {
         <span style="font-size:0.6rem; ${pathStyle}; margin-left:auto; border:1px solid; border-radius:4px; padding:0 4px;">${a.path.toUpperCase()}</span>
         ${!a.alive ? '<span style="color:var(--red);font-size:.65rem">PERISHED</span>' : ''}
       </div>
-      <div class="agent-loc">📍 ${a.location.replace('_',' ')} &nbsp; ${inv}</div>
+      <div class="agent-loc">📍 ${a.location.replace('_',' ')} &nbsp; ${inv} ${money}</div>
       <div class="agent-thought">${a.last_thought || '…'}</div>
       <div class="stat-row">
         ${statBar('Hunger',    a.hunger,    'hunger')}
         ${statBar('Energy',    a.energy,    'energy')}
         ${statBar('Social',    a.community, 'community')}
+        ${statBar('Money',     a.money ?? 0, 'money', 20)}
       </div>
       <div class="trait-row">
         <span class="trait-badge" title="Greed">G:${a.greed.toFixed(1)}</span>
@@ -589,13 +620,12 @@ function renderAgents(agents) {
   }
 }
 
-function statBar(label, val, cls) {
-  // val is out of 10. we want percent for the style="width:XX%"
-  const pct = Math.min(100, (val / 10) * 100);
+function statBar(label, val, cls, max = 10) {
+  const pct = Math.min(100, (val / max) * 100);
   return `<div class="stat">
     <span class="stat-label">${label}</span>
     <div class="stat-bar"><div class="stat-fill ${cls}" style="width:${pct}%"></div></div>
-    <span class="stat-num">${val}/10</span>
+    <span class="stat-num">${val}/${max}</span>
   </div>`;
 }
 
@@ -610,7 +640,7 @@ function renderChronicle(entries, tick) {
   log.innerHTML = '';
   for (const e of [...entries].reverse()) {
     const div = document.createElement('div');
-    div.className = 'c-entry';
+    div.className = 'c-entry' + ((e.entry.includes('💰') || e.entry.includes('📢')) ? ' pay' : '');
     div.innerHTML = `<span class="c-tick">[${e.tick}]</span>${e.entry}`;
     log.appendChild(div);
   }
@@ -620,6 +650,8 @@ function renderChronicle(entries, tick) {
 function applyState(s) {
   document.getElementById('tick-display').textContent  = `Tick: ${s.tick}`;
   document.getElementById('berry-display').textContent = `🫐 ${s.berry_count}`;
+  const totalMoney = s.agents.reduce((sum, a) => sum + (a.money ?? 0), 0);
+  document.getElementById('gold-display').textContent = `💰 ${totalMoney}`;
   
   // Tick down active bubbles
   activeBubbles.forEach(b => b.ticks--);

@@ -40,6 +40,7 @@ class StorageBackend(ABC):
         curiosity: float,
         empathy: float = 0.5,
         assertiveness: float = 0.5,
+        money: int = 10,
         path: str = "survivor",
     ) -> None: ...
 
@@ -149,6 +150,7 @@ class SQLiteBackend(StorageBackend):
         curiosity: float,
         empathy: float = 0.5,
         assertiveness: float = 0.5,
+        money: int = 10,
         path: str = "survivor",
     ) -> None:
         conn = get_conn()
@@ -156,12 +158,12 @@ class SQLiteBackend(StorageBackend):
             conn.execute(
                 """INSERT INTO agents
                    (id, name, greed, sociability, curiosity, empathy, assertiveness, path,
-                    hunger, energy, community, location, inventory,
+                    money, hunger, energy, community, location, inventory,
                     alive, created_tick, last_thought)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'fire_pit', '[]', 1,
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'fire_pit', '[]', 1,
                            (SELECT tick FROM world WHERE id=1), '')""",
                 (agent_id, name, round(greed, 2), round(sociability, 2), round(curiosity, 2), 
-                 round(empathy, 2), round(assertiveness, 2), path,
+                 round(empathy, 2), round(assertiveness, 2), path, money,
                  MAX_STAT_VALUE, MAX_STAT_VALUE, MAX_STAT_VALUE // 2),
             )
         conn.close()

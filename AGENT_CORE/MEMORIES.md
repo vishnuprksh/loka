@@ -1,4 +1,9 @@
 # Strategic Memories
+### 2026-04-14 - Move to Multi-Action Architecture
+- **Context:** Agents were limited to one atomic task per tick, which felt unnatural (e.g., can't talk while eating).
+- **Decision:** Transitioning to an `actions` list schema in the cognitive loop.
+- **Reasoning:** Multi-actions allow for richer social emergence and more realistic survival behavior without increasing the number of LLM calls (and thus cost).
+
 ### 2026-04-14 - Personality Trait Context in Prompts
 - **Context:** Raw trait values like "Greed: 0.7" lacked standard scale or behavioral context for the LLM.
 - **Decision:** Updated [src/simulation.py](src/simulation.py) to include a "PERSONALITY (Scale 0.0 to 1.0)" section with descriptive anchors for each trait (Greed, Sociability, Curiosity, Empathy, Assertiveness).

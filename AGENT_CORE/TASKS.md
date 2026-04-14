@@ -46,6 +46,12 @@
   - [ ] Observer Mode
   - [ ] Web/Desktop Interface
 
+- [ ] **Phase 5: Multi-Action Intent System**
+  - [ ] Update LLM parser for `actions` array support
+  - [ ] Refactor `simulation.py` tick loop for sequential action processing
+  - [ ] Update prompt schema and survival guidelines
+  - [ ] Implement action conflict resolution (e.g., can't SLEEP and MOVE)
+
 ---
 
 ## 🚧 Blockers

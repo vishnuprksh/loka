@@ -182,9 +182,10 @@ AVAILABLE ACTIONS:
 Respond ONLY with valid JSON. {REASONING_REINFORCEMENT}
 {{
   "thought": "Your deep reflection, survival analysis, and social appraisal.", 
-  "action": "...", 
-  "target": "...", 
-  "message": "...",
+  "actions": [
+    {{ "action": "...", "target": "...", "message": "..." }},
+    {{ "action": "...", "target": "...", "message": "..." }}
+  ],
   "conversation_status": "CONTINUE" or "END" (only relevant if you use TALK)
 }}"""
 
@@ -192,26 +193,43 @@ Respond ONLY with valid JSON. {REASONING_REINFORCEMENT}
 # ------------------------------------------------------------------
 # Action executor
 # ------------------------------------------------------------------
-def _apply_action(
+def _apply_intents(
     agent: dict,
-    action_data: dict,
+    intents: dict,
     agents: list[dict],
     resource_state: dict[str, int],
     tick: int,
 ) -> None:
-    action = str(action_data.get("action") or "DO_NOTHING").upper()
-    target = str(action_data.get("target") or "").strip().lower()
-    message = str(action_data.get("message") or "").strip()
+    """Process multiple actions (intents) for a single agent in one tick."""
+    actions = intents.get("actions", [])
+    if not actions:
+        actions = [{"action": "DO_NOTHING"}]
 
-    # Force sleep when energy hits zero (regardless of chosen action)
-    if agent["energy"] == 0 and action != "EAT":
-        action = "SLEEP"
-        target = ""
-        message = ""
+    # Cap at 3 actions to prevent spamming/unrealistic productivity
+    for action_data in actions[:3]:
+        action_name = str(action_data.get("action") or "DO_NOTHING").upper()
+        target = str(action_data.get("target") or "").strip().lower()
+        message = str(action_data.get("message") or "").strip()
 
-    skill = SKILLS.get(action)
-    if skill and skill.validate(agent, target, message, agents, resource_state, ENV):
-        skill.execute(agent, target, message, agents, resource_state, ENV, tick, STORAGE)
+        # Force sleep when energy hits zero (regardless of chosen action)
+        # Exception: EAT is allowed if the agent has food (handled in EatSkill validation)
+        if agent["energy"] == 0 and action_name != "EAT":
+            action_name = "SLEEP"
+            target = ""
+            message = ""
+
+        skill = SKILLS.get(action_name)
+        if skill and skill.validate(agent, target, message, agents, resource_state, ENV):
+            skill.execute(agent, target, message, agents, resource_state, ENV, tick, STORAGE)
+            
+            # Re-fetch agent state after each action as stats/location might have changed
+            # (Ensures subsequent actions in the same tick use up-to-date stats)
+            updated_agents = STORAGE.get_agents(alive_only=False)
+            agent = next((a for a in updated_agents if a["id"] == agent["id"]), agent)
+            
+            # If the action was MOVE or SLEEP, we usually stop further actions for realism
+            if action_name in ["MOVE", "SLEEP"]:
+                break
 
 
 # ------------------------------------------------------------------
@@ -251,19 +269,23 @@ def tick() -> int:
         results = list(executor.map(_agent_think, prompts))
 
     # 3. Apply results sequentially (maintains DB consistency)
-    for agent, action_data in results:
-        thought = (action_data.get("thought") or "")[:150]
+    for agent, intent_data in results:
+        thought = (intent_data.get("thought") or "")[:150]
         STORAGE.update_agent(agent["id"], last_thought=thought)
         
-        # If the action isn't TALK, or if conversation_status is END, clear unanswered for this agent
-        # (Already partially handled in TalkSkill, but this ensures a "non-TALK" action clears the flag)
-        if action_data.get("action") != "TALK" or action_data.get("conversation_status") == "END":
+        # Determine if we should clear unanswered flags
+        # Actions are now inside a list
+        actions_list = intent_data.get("actions", [])
+        any_talk = any(a.get("action") == "TALK" for a in actions_list)
+        conv_ended = intent_data.get("conversation_status") == "END"
+
+        if not any_talk or conv_ended:
             conn = STORAGE.get_conn()
             with conn:
                 conn.execute("UPDATE memories SET is_unanswered=0 WHERE agent_id=?", (agent["id"],))
             conn.close()
 
-        _apply_action(agent, action_data, agents, resource_state, new_tick)
+        _apply_intents(agent, intent_data, agents, resource_state, new_tick)
 
     # Natural stat decay
     STORAGE.tick_decay()

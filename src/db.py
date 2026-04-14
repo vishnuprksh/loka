@@ -33,7 +33,6 @@ def init_db(env=None) -> None:
                 assertiveness REAL    NOT NULL DEFAULT 0.5,
                 hunger       INTEGER NOT NULL DEFAULT 5,
                 energy       INTEGER NOT NULL DEFAULT 10,
-                community    INTEGER NOT NULL DEFAULT 5,
                 location     TEXT    NOT NULL DEFAULT 'fire_pit',
                 inventory    TEXT    NOT NULL DEFAULT '[]',
                 money        INTEGER NOT NULL DEFAULT 10,
@@ -42,6 +41,15 @@ def init_db(env=None) -> None:
                 info         TEXT    NOT NULL DEFAULT '',
                 created_tick INTEGER NOT NULL DEFAULT 0,
                 last_thought TEXT    NOT NULL DEFAULT ''
+            );
+
+            CREATE TABLE IF NOT EXISTS relationships (
+                agent_a      TEXT    NOT NULL,
+                agent_b      TEXT    NOT NULL,
+                score        INTEGER NOT NULL DEFAULT 5,
+                PRIMARY KEY (agent_a, agent_b),
+                FOREIGN KEY (agent_a) REFERENCES agents(id),
+                FOREIGN KEY (agent_b) REFERENCES agents(id)
             );
 
             CREATE TABLE IF NOT EXISTS memories (

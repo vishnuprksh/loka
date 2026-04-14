@@ -1,3 +1,5 @@
 - what if the api calls are slower than the tick itself?
 - if the survival is the primary objective, people intract very less, because they have to fight always
 - if the survival is not a problem at all, people becomes lazy to talk becasue, they don't have any purpose
+- info is everything, if someone doesn't know that he has to eat when hungry, he will die
+- reasoning is very important, if people can't calculate how much food he has to store

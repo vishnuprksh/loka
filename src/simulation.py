@@ -15,7 +15,8 @@ from .skills import SKILL_REGISTRY, SkillRegistry
 from .storage import SQLiteBackend, StorageBackend
 from .config import (
     MAX_STAT_VALUE, HUNGER_THRESHOLD_LOW, ENERGY_THRESHOLD_LOW,
-    MEMORY_WINDOW_LIMIT, DEFAULT_TICK_INTERVAL, DEFAULT_BERRY_HUNGER
+    MEMORY_WINDOW_LIMIT, DEFAULT_TICK_INTERVAL, DEFAULT_BERRY_HUNGER,
+    SURVIVAL_GUIDELINE, SOCIAL_STATUS_GUIDELINE, REASONING_REINFORCEMENT
 )
 
 TICK_INTERVAL = int(os.getenv("TICK_INTERVAL", str(DEFAULT_TICK_INTERVAL)))
@@ -34,6 +35,7 @@ STORAGE: StorageBackend = SQLiteBackend()
 def _build_prompt(agent: dict, agents_at_loc: list[dict], resource_state: dict[str, int]) -> str:
     inventory = json.loads(agent["inventory"])
     memories = STORAGE.get_recent_memories(agent["id"], limit=MEMORY_WINDOW_LIMIT)
+    relationships = STORAGE.get_relationships(agent["id"]) # Your opinions of others
 
     unanswered_message = None
     mem_lines = []
@@ -75,8 +77,13 @@ def _build_prompt(agent: dict, agents_at_loc: list[dict], resource_state: dict[s
     mem_text = "\n".join(mem_lines) or "None yet."
 
     others = [a for a in agents_at_loc if a["id"] != agent["id"]]
+    others_detail = []
+    for a in others:
+        score = relationships.get(a["id"], 5)
+        others_detail.append(f"{a['name']} (You feel: {score}/10)")
+    
     others_text = (
-        ", ".join(f"{a['name']}" for a in others)
+        ", ".join(others_detail)
         or "Nobody else here."
     )
 
@@ -111,9 +118,11 @@ def _build_prompt(agent: dict, agents_at_loc: list[dict], resource_state: dict[s
     if unanswered_message:
         mandatory_reply_instruction = f"\n\nCRITICAL: {unanswered_message} was just said to you. Social harmony is key. You MUST respond in this tick using the TALK action to the correct target. If you are too hungry/tired to talk, at least acknowledge them briefly before leaving."
 
+    # Calculated community score for the prompt
+    community_score = STORAGE.get_public_social_status(agent["id"])
     social_urge = ""
-    if agent['community'] < 4:
-        social_urge = "\n\nURGENT: Your Community level is dangerously low. You are feeling isolated. Seek out others and speak with them to restore your spirit."
+    if community_score < 4:
+        social_urge = "\n\nURGENT: Your Community level (Public Reputation) is dangerously low. People generally dislike or ignore you. Seek out others and speak with them to restore your reputation."
 
     traits_context = (
         f"PERSONALITY (Scale 0.0 to 1.0):\n"
@@ -129,10 +138,10 @@ def _build_prompt(agent: dict, agents_at_loc: list[dict], resource_state: dict[s
 LOCATIONS: {locations_text}
 TICK: The world runs in discrete steps called 'ticks'. Each action happens in a tick.
 STATS & SURVIVAL:
-- Fullness/Rest: Keep them above 0 to survive. If either hits 0, you die.
+- Fullness/Rest: {SURVIVAL_GUIDELINE}
 - Hunger stabilization: EAT can restore fullness. (e.g., eating a berry gives {DEFAULT_BERRY_HUNGER} points). Keep food in inventory.
 - Energy stabilization: SLEEP restores energy. Productivity is better at the 'shelter'. 
-- Social Bar (Community): This tracks your social status. Unlike other bars, this is VISIBLE to others and determines your popularity/influence. Stay social to keep it high.
+- SOCIAL STATUS: {SOCIAL_STATUS_GUIDELINE}
 ECONOMY:
 - Money: Gold is used for trading.
 - Trading: You can PAY others for items or use OFFER_FOR_SALE. Negotiation is key.
@@ -149,7 +158,7 @@ PATH: {agent.get('path', 'Survivor')}
 STATE:
 - Energy/Fullness: {agent['hunger']}/{MAX_STAT_VALUE}  (0=STARVING, {MAX_STAT_VALUE}=FULL. Eat if below {HUNGER_THRESHOLD_LOW}!)
 - Rest/Vigor:      {agent['energy']}/{MAX_STAT_VALUE}  (0=EXHAUSTED, {MAX_STAT_VALUE}=RESTED. Sleep if below {ENERGY_THRESHOLD_LOW}!)
-- Community:       {agent['community']}/{MAX_STAT_VALUE}
+- Community:       {community_score}/{MAX_STAT_VALUE} (Calculated from how others feel about you)
 - Wealth (Gold):   {agent.get('money', 0)}
 - Location:        {agent['location']}
 - Inventory:       {inventory if inventory else 'empty'}
@@ -170,9 +179,9 @@ MISSION: Survive and build a society. {path_instruction}{economy_instruction}{ma
 AVAILABLE ACTIONS:
   {skill_lines_text}
 
-Respond ONLY with valid JSON:
+Respond ONLY with valid JSON. {REASONING_REINFORCEMENT}
 {{
-  "thought": "...", 
+  "thought": "Your deep reflection, survival analysis, and social appraisal.", 
   "action": "...", 
   "target": "...", 
   "message": "...",
@@ -259,15 +268,17 @@ def tick() -> int:
     # Natural stat decay
     STORAGE.tick_decay()
 
-    # Community loneliness decay
+    # Relationship decay
     alive = STORAGE.get_agents()
     for a in alive:
-        companions = [x for x in alive if x["id"] != a["id"] and x["location"] == a["location"]]
-        if not companions and new_tick % 4 == 0:
-            STORAGE.update_agent(a["id"], community=max(0, a["community"] - 1))
-        elif companions:
-             # Reward proximity
-             STORAGE.update_agent(a["id"], community=min(MAX_STAT_VALUE, a["community"] + 1))
+        # Relationships decay slowly over time if no interaction (-1 every 10 ticks)
+        if new_tick % 10 == 0:
+            conn = STORAGE.get_conn()
+            with conn:
+                conn.execute(
+                    "UPDATE relationships SET score=MAX(0, score-1) WHERE agent_b=?", (a["id"],)
+                )
+            conn.close()
 
     # Starvation check
     dead_list = STORAGE.kill_starved_agents()
@@ -357,7 +368,7 @@ def get_state_dict() -> dict:
                 "money":        a.get("money", 0),
                 "hunger":       a["hunger"],
                 "energy":       a["energy"],
-                "community":    a["community"],
+                "community":    STORAGE.get_public_social_status(a["id"]),
                 "location":     a["location"],
                 "inventory":    json.loads(a["inventory"]),
                 "alive":        bool(a["alive"]),

@@ -21,3 +21,8 @@ CHRONICLE_LIMIT = 30
 # Energy Gains
 ENERGY_GAIN_SHELTER = 5
 ENERGY_GAIN_ANYWHERE = 2
+
+# Behavioral Guidelines
+SURVIVAL_GUIDELINE = "SURVIVAL IS YOUR ABSOLUTE PRIORITY. Every tick you lose 1 Fullness and 1 Rest. If either hits 0, you PERISH. Think 5-10 ticks ahead: do you have enough food in your inventory? Are you near a shelter to rest? Do not wait until you are starving to act."
+SOCIAL_STATUS_GUIDELINE = "Social Bar (Community) is your Loka Identity. 0-3 = ISOLATED (Depression, others may ignore you), 4-6 = STABLE (A face in the crowd), 7-10 = INFLUENTIAL (People listen to you, trading is easier). This bar is VISIBLE to everyone."
+REASONING_REINFORCEMENT = "Before acting, perform a SITUATIONAL ANALYSIS in your 'thought' field: Evaluate your current survival buffer, assess your social standing, and decide if you are playing it too safe or taking too many risks."

@@ -234,9 +234,9 @@ class TalkSkill(Skill):
             conn.execute("UPDATE memories SET is_unanswered=0 WHERE agent_id=?", (agent["id"],))
         conn.close()
 
-        # Update community stats
-        # Speaker gets a boost for social behavior
-        storage.update_agent(agent["id"], community=min(20, agent["community"] + 2))
+        # Update relationships
+        # Speaker and listeners get a minor boost for interaction
+        # We process broadcast differently from direct speech
         
         # Add memory for the speaker
         target_name = "Everyone" if is_shout else tgt_agent["name"]
@@ -249,8 +249,8 @@ class TalkSkill(Skill):
         
         # Broadcast to all listeners
         for listener in listeners:
-            # Boost community for listeners
-            storage.update_agent(listener["id"], community=min(20, listener["community"] + 1))
+            # Relationship update: Listener likes speaker slightly more (+1) for talking
+            storage.update_relationship(agent["id"], listener["id"], 1)
             
             # Listener's memory: indicates who said what and the target
             is_target = (not is_shout and listener["id"] == tgt_agent["id"])
@@ -335,6 +335,12 @@ class GiveBerrySkill(Skill):
         t_inv.append(item_to_give)
         storage.update_agent(agent["id"], inventory=json.dumps(inventory))
         storage.update_agent(tgt["id"], inventory=json.dumps(t_inv))
+        
+        # New Relationship logic: Target significantly likes donor (+5)
+        # Donor likes target slightly for being helpful (+1)
+        storage.update_relationship(agent["id"], tgt["id"], 5)
+        storage.update_relationship(tgt["id"], agent["id"], 1)
+
         storage.add_memory(agent["id"], tick, f'Gave {item_to_give} to {tgt["name"]}')
         storage.add_memory(tgt["id"], tick, f'{agent["name"]} gave me {item_to_give} 🎁')
         storage.add_chronicle(
@@ -382,6 +388,10 @@ class PaySkill(Skill):
         # Transfer money
         storage.update_agent(agent["id"], money=agent["money"] - amount)
         storage.update_agent(target_agent["id"], money=target_agent["money"] + amount)
+
+        # Update relationships: Recipient likes payer (+1 per 5 gold, min 1)
+        rel_boost = max(1, amount // 5)
+        storage.update_relationship(agent["id"], target_agent["id"], rel_boost)
 
         # Update memories
         storage.add_memory(agent["id"], tick, f"Paid {amount} gold to {target_agent['name']}")

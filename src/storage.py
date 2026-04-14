@@ -44,6 +44,23 @@ class StorageBackend(ABC):
         path: str = "survivor",
     ) -> None: ...
 
+    # ---- Relationships ---------------------------------------------------------
+
+    @abstractmethod
+    def get_relationships(self, agent_id: str) -> dict[str, int]:
+        """Return all relationships for an agent as {other_agent_id: score}."""
+        ...
+
+    @abstractmethod
+    def update_relationship(self, agent_a: str, agent_b: str, delta: int) -> None:
+        """Add delta to the score agent_a has for agent_b (how B feels about A)."""
+        ...
+
+    @abstractmethod
+    def get_public_social_status(self, agent_id: str) -> int:
+        """Return the average score others have for this agent."""
+        ...
+
     # ---- World -----------------------------------------------------------------
 
     @abstractmethod
@@ -134,6 +151,10 @@ class SQLiteBackend(StorageBackend):
     def update_agent(self, agent_id: str, **fields) -> None:
         if not fields:
             return
+        # Filter out community if it's passed (since we removed the column)
+        fields.pop("community", None)
+        if not fields:
+            return
         set_clause = ", ".join(f"{k}=?" for k in fields)
         values = list(fields.values()) + [agent_id]
         conn = get_conn()
@@ -158,15 +179,56 @@ class SQLiteBackend(StorageBackend):
             conn.execute(
                 """INSERT INTO agents
                    (id, name, greed, sociability, curiosity, empathy, assertiveness, path,
-                    money, hunger, energy, community, location, inventory,
+                    money, hunger, energy, location, inventory,
                     alive, created_tick, last_thought)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'fire_pit', '[]', 1,
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'fire_pit', '[]', 1,
                            (SELECT tick FROM world WHERE id=1), '')""",
                 (agent_id, name, round(greed, 2), round(sociability, 2), round(curiosity, 2), 
                  round(empathy, 2), round(assertiveness, 2), path, money,
-                 MAX_STAT_VALUE, MAX_STAT_VALUE, MAX_STAT_VALUE // 2),
+                 MAX_STAT_VALUE, MAX_STAT_VALUE),
             )
         conn.close()
+
+    # ---- Relationships ---------------------------------------------------------
+
+    def get_relationships(self, agent_id: str) -> dict[str, int]:
+        conn = get_conn()
+        rows = conn.execute(
+            "SELECT agent_b, score FROM relationships WHERE agent_a=?", (agent_id,)
+        ).fetchall()
+        conn.close()
+        return {r["agent_b"]: r["score"] for r in rows}
+
+    def update_relationship(self, agent_a: str, agent_b: str, delta: int) -> None:
+        """agent_a is the one performing the action, agent_b is the target.
+        The score being updated is how agent_b feels about agent_a.
+        """
+        conn = get_conn()
+        with conn:
+            # Check if relationship exists
+            exists = conn.execute(
+                "SELECT 1 FROM relationships WHERE agent_a=? AND agent_b=?", (agent_b, agent_a)
+            ).fetchone()
+            if not exists:
+                conn.execute(
+                    "INSERT INTO relationships (agent_a, agent_b, score) VALUES (?, ?, ?)",
+                    (agent_b, agent_a, max(0, min(MAX_STAT_VALUE, 5 + delta))),
+                )
+            else:
+                conn.execute(
+                    "UPDATE relationships SET score=MAX(0, MIN(?, score+?)) WHERE agent_a=? AND agent_b=?",
+                    (MAX_STAT_VALUE, delta, agent_b, agent_a),
+                )
+        conn.close()
+
+    def get_public_social_status(self, agent_id: str) -> int:
+        conn = get_conn()
+        row = conn.execute(
+            "SELECT AVG(score) FROM relationships WHERE agent_b=?", (agent_id,)
+        ).fetchone()
+        conn.close()
+        # Default to 5 if no relationships
+        return int(row[0]) if row and row[0] is not None else 5
 
     # ---- World -----------------------------------------------------------------
 

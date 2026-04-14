@@ -43,23 +43,43 @@ def call_llm(prompt: str) -> dict:
 
 
 def _parse_action(content: str) -> dict:
-    """Extract a JSON action object from LLM output."""
-    default_resp = {"thought": "I'm confused.", "action": "DO_NOTHING", "target": None, "message": None, "conversation_status": "END"}
-    try:
-        data = json.loads(content)
+    """Extract a JSON action object from LLM output.
+    Supports both legacy 'action' keys and the new 'actions' array.
+    """
+    default_resp = {
+        "thought": "I am deep in thought.",
+        "actions": [],
+        "conversation_status": "END"
+    }
+
+    def _sanitize(data: dict) -> dict:
+        """Convert single 'action' format into preferred 'actions' array."""
+        if "actions" not in data:
+            if "action" in data:
+                data["actions"] = [{
+                    "action": data.get("action", "DO_NOTHING"),
+                    "target": data.get("target"),
+                    "message": data.get("message")
+                }]
+            else:
+                data["actions"] = []
         if "conversation_status" not in data:
             data["conversation_status"] = "END"
         return data
+
+    try:
+        data = json.loads(content)
+        return _sanitize(data)
     except Exception:
         pass
+
     try:
         start = content.find("{")
         end = content.rfind("}") + 1
         if start >= 0 and end > start:
             data = json.loads(content[start:end])
-            if "conversation_status" not in data:
-                data["conversation_status"] = "END"
-            return data
+            return _sanitize(data)
     except Exception:
         pass
+
     return default_resp

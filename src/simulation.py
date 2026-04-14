@@ -115,6 +115,16 @@ def _build_prompt(agent: dict, agents_at_loc: list[dict], resource_state: dict[s
     if agent['community'] < 4:
         social_urge = "\n\nURGENT: Your Community level is dangerously low. You are feeling isolated. Seek out others and speak with them to restore your spirit."
 
+    traits_context = (
+        f"PERSONALITY (Scale 0.0 to 1.0):\n"
+        f"Higher values shift your bias toward specific behaviors vs. the general collective norm.\n"
+        f"- Greed: {agent['greed']:.1f} (Higher = prioritize wealth/gold over social harmony)\n"
+        f"- Sociability: {agent['sociability']:.1f} (Higher = seek social interactions and talk more)\n"
+        f"- Curiosity: {agent['curiosity']:.1f} (Higher = explore unknown locations and experiment)\n"
+        f"- Empathy: {agent.get('empathy', 0.5):.1f} (Higher = altruistic behavior and help others)\n"
+        f"- Assertiveness: {agent.get('assertiveness', 0.5):.1f} (Higher = confident, direct, and less prone to following others' lead)"
+    )
+
     world_info = f"""--- THE WORLD ---
 LOCATIONS: {locations_text}
 TICK: The world runs in discrete steps called 'ticks'. Each action happens in a tick.
@@ -132,7 +142,7 @@ ECONOMY:
 
     return f"""You are {agent['name']}, an autonomous agent in {ENV.name}.
 
-TRAITS: Greed={agent['greed']:.1f}, Sociability={agent['sociability']:.1f}, Curiosity={agent['curiosity']:.1f}, Empathy={agent.get('empathy', 0.5):.1f}, Assertiveness={agent.get('assertiveness', 0.5):.1f}
+{traits_context}
 PATH: {agent.get('path', 'Survivor')}
 {info_section}
 

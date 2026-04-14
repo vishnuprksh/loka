@@ -1,4 +1,9 @@
 # Strategic Memories
+### 2026-04-14 - Personality Trait Context in Prompts
+- **Context:** Raw trait values like "Greed: 0.7" lacked standard scale or behavioral context for the LLM.
+- **Decision:** Updated [src/simulation.py](src/simulation.py) to include a "PERSONALITY (Scale 0.0 to 1.0)" section with descriptive anchors for each trait (Greed, Sociability, Curiosity, Empathy, Assertiveness).
+- **Reasoning:** Defining the scale (0.0 to 1.0) and providing qualitative descriptions (e.g., "prioritize wealth over social harmony") ensures the LLM interprets stats as behavioral biases rather than arbitrary numbers, leading to more consistent role-playing and alignment with the agent's defined path.
+
 ### 2026-04-14 - Implementing Informed Agency
 - **Context:** Agents were dying or making poor decisions due to lack of knowledge about world mechanics (stats, resources, trading).
 - **Decision:** Added a dedicated "Info Section" to agent prompts and a persistent `info` field in the database for personalized agent knowledge. 

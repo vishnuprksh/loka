@@ -16,7 +16,8 @@ from .storage import SQLiteBackend, StorageBackend
 from .config import (
     MAX_STAT_VALUE, HUNGER_THRESHOLD_LOW, ENERGY_THRESHOLD_LOW,
     MEMORY_WINDOW_LIMIT, DEFAULT_TICK_INTERVAL, DEFAULT_BERRY_HUNGER,
-    SURVIVAL_GUIDELINE, SOCIAL_STATUS_GUIDELINE, REASONING_REINFORCEMENT
+    SURVIVAL_GUIDELINE, SOCIAL_STATUS_GUIDELINE, PRIMITIVE_ECONOMY_GUIDELINE, 
+    REASONING_REINFORCEMENT
 )
 
 TICK_INTERVAL = int(os.getenv("TICK_INTERVAL", str(DEFAULT_TICK_INTERVAL)))
@@ -142,6 +143,7 @@ STATS & SURVIVAL:
 - Hunger stabilization: EAT can restore fullness. (e.g., eating a berry gives {DEFAULT_BERRY_HUNGER} points). Keep food in inventory.
 - Energy stabilization: SLEEP restores energy. Productivity is better at the 'shelter'. 
 - SOCIAL STATUS: {SOCIAL_STATUS_GUIDELINE}
+- PRIMITIVE ECONOMY: {PRIMITIVE_ECONOMY_GUIDELINE}
 ECONOMY:
 - Money: Gold is used for trading.
 - Trading: You can PAY others for items or use OFFER_FOR_SALE. Negotiation is key.

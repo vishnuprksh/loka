@@ -1,4 +1,9 @@
 # Strategic Memories
+### 2026-04-14 - Primitive Social-Economic Logic
+- **Context:** Agents were treating resource trades like a modern retail transaction, which mismatch the "tribe" survivor setting.
+- **Decision:** Updated Behavioral Guidelines to prioritize sharing with friends and exploitation of others.
+- **Reasoning:** In a primitive setting, resource sharing is a survival strategy for the group (friends), while external trading is a way to build a personal safety net (Gold). This creates a more dynamic social gap between allies and strangers.
+
 ### 2026-04-14 - Move to Multi-Action Architecture
 - **Context:** Agents were limited to one atomic task per tick, which felt unnatural (e.g., can't talk while eating).
 - **Decision:** Transitioning to an `actions` list schema in the cognitive loop.

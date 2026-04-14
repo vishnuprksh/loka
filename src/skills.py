@@ -283,7 +283,7 @@ class TalkSkill(Skill):
 
 class GiveBerrySkill(Skill):
     name = "GIVE_BERRY"
-    prompt_description = "GIVE_BERRY — target: agent name at same location (only use if they ASKED for food in chat)"
+    prompt_description = "GIVE_BERRY — target: agent name at same location (for free sharing with allies who ASKED for food)"
 
     def validate(self, agent, target, message, agents, resource_state, env) -> bool:
         if not target:
@@ -407,7 +407,7 @@ class PaySkill(Skill):
 
 class OfferForSaleSkill(Skill):
     name = "OFFER_FOR_SALE"
-    prompt_description = "OFFER_FOR_SALE — target: item name, message: price (e.g. 'Selling berry for 5 gold')"
+    prompt_description = "OFFER_FOR_SALE — target: item name, message: price (e.g. 'Selling berry for 15 gold' — use high prices for unlikable people)"
 
     def validate(self, agent, target, message, agents, resource_state, env) -> bool:
         inventory = json.loads(agent["inventory"])

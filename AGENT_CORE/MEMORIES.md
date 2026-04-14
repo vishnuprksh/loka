@@ -1,4 +1,9 @@
 # Strategic Memories
+### 2026-04-14 - Fixed Chronicle and Observer Logging
+- **Context:** The "Chronicles" tab was empty in the frontend, and the Observer LLM was failing to parse logs.
+- **Decision:** Implemented `renderChronicle` in [static/index.html](static/index.html) and fixed a dictionary access bug in [src/observer.py](src/observer.py) (`r[entry]` -> `r['entry']`).
+- **Reasoning:** Functional visibility is critical for the "Observer" role. Correcting the data flow ensures users can track the history of the world in real-time.
+
 ### 2026-04-14 - Fixed Resource Over-Harvesting Bug
 - **Context:** Multiple agents were able to forage the same resource in a single tick because the resource state was snapshotted once at the start of the execution phase.
 - **Decision:** Updated [src/simulation.py](src/simulation.py) to refresh `resource_state` from the database before each agent's turn and after each individual action.

@@ -661,7 +661,23 @@ function renderChronicle(entries, tick) {
 
   const log = document.getElementById('chronicle-log');
   log.innerHTML = '';
-  // ... existing code ...
+  
+  // Sort by ID descending if they come in without a fixed order, 
+  // but usually we want latest at top for the 'Chronicle' view.
+  // The backend returns them reversed (oldest first) so we un-reverse here or just loop backwards.
+  for (let i = entries.length - 1; i >= 0; i--) {
+    const e = entries[i];
+    const div = document.createElement('div');
+    div.className = 'c-entry';
+    
+    // Check if it should be highlighted (e.g. death or spawn)
+    if (e.entry.includes('💀')) div.classList.add('death');
+    if (e.entry.includes('✨')) div.classList.add('spawn');
+    if (e.entry.includes('💰')) div.classList.add('trade');
+
+    div.innerHTML = `<span class="c-tick">${e.tick}</span> ${e.entry}`;
+    log.appendChild(div);
+  }
 }
 
 // ── State update ──────────────────────────────────────────────────

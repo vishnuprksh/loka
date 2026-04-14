@@ -34,7 +34,7 @@ def update_observer_report(tick: int, storage: StorageBackend) -> str:
     logs_rows = conn.execute("SELECT entry FROM chronicle WHERE tick = ?", (tick,)).fetchall()
     conn.close()
 
-    logs_text = "\\n".join([f"- {r[entry]}" for r in logs_rows]) or "Nothing notable happened."
+    logs_text = "\n".join([f"- {r['entry']}" for r in logs_rows]) or "Nothing notable happened."
 
     # 3. Call LLM
     prompt = OBSERVER_PROMPT.format(

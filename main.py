@@ -23,6 +23,21 @@ from src.simulation import (
 
 
 # ------------------------------------------------------------------ #
+# App initialization                                                  #
+# ------------------------------------------------------------------ #
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Clear and re-seed the DB on every startup
+    reset_db(THE_GROVE)
+    seed_default_agents()
+    asyncio.create_task(simulation_loop())
+    yield
+
+
+app = FastAPI(title="Loka — The Grove", lifespan=lifespan)
+
+
+# ------------------------------------------------------------------ #
 # WebSocket client registry                                           #
 # ------------------------------------------------------------------ #
 clients: set[WebSocket] = set()
@@ -69,24 +84,11 @@ async def simulation_loop() -> None:
 
 
 # ------------------------------------------------------------------ #
-# App lifecycle                                                       #
+# Static & Routes                                                     #
 # ------------------------------------------------------------------ #
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Clear and re-seed the DB on every startup
-    reset_db(THE_GROVE)
-    seed_default_agents()
-    asyncio.create_task(simulation_loop())
-    yield
-
-
-app = FastAPI(title="Loka — The Grove", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-# ------------------------------------------------------------------ #
-# Routes                                                              #
-# ------------------------------------------------------------------ #
 @app.get("/")
 def index() -> FileResponse:
     return FileResponse("static/index.html")

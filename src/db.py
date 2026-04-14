@@ -80,6 +80,12 @@ def init_db(env=None) -> None:
                 max_count INTEGER NOT NULL DEFAULT 0
             );
 
+            CREATE TABLE IF NOT EXISTS observer_report (
+                id    INTEGER PRIMARY KEY DEFAULT 1,
+                tick  INTEGER NOT NULL,
+                report TEXT   NOT NULL
+            );
+
             INSERT OR IGNORE INTO world (id, tick) VALUES (1, 0);
         """)
 

@@ -1,4 +1,9 @@
 # Strategic Memories
+### 2026-04-14 - Fixed Resource Over-Harvesting Bug
+- **Context:** Multiple agents were able to forage the same resource in a single tick because the resource state was snapshotted once at the start of the execution phase.
+- **Decision:** Updated [src/simulation.py](src/simulation.py) to refresh `resource_state` from the database before each agent's turn and after each individual action.
+- **Reasoning:** Sequential execution of agent actions must respect the real-time consumption of resources to maintain scarcity. This ensures that if only 1 berry exists, only the first agent to act can harvest it.
+
 ### 2026-04-14 - Primitive Social-Economic Logic
 - **Context:** Agents were treating resource trades like a modern retail transaction, which mismatch the "tribe" survivor setting.
 - **Decision:** Updated Behavioral Guidelines to prioritize sharing with friends and exploitation of others.

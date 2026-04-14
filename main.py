@@ -21,10 +21,22 @@ from src.simulation import (
     tick,
 )
 
+
 # ------------------------------------------------------------------ #
 # WebSocket client registry                                           #
 # ------------------------------------------------------------------ #
 clients: set[WebSocket] = set()
+
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    clients.add(websocket)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        clients.remove(websocket)
 
 
 async def broadcast(data: dict) -> None:
@@ -83,6 +95,13 @@ def index() -> FileResponse:
 @app.get("/state")
 def get_state() -> dict:
     return get_state_dict()
+
+
+@app.post("/reset")
+def reset_world() -> dict:
+    reset_db(THE_GROVE)
+    seed_default_agents()
+    return {"status": "success", "message": "World reset to Tick 0."}
 
 
 class AgentCreate(BaseModel):

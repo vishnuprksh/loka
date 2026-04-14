@@ -224,10 +224,11 @@ def _apply_intents(
         if skill and skill.validate(agent, target, message, agents, resource_state, ENV):
             skill.execute(agent, target, message, agents, resource_state, ENV, tick, STORAGE)
             
-            # Re-fetch agent state after each action as stats/location might have changed
-            # (Ensures subsequent actions in the same tick use up-to-date stats)
+            # Re-fetch agent state AND world resources after each action
+            # (Ensures subsequent actions in the same tick use up-to-date stats/resource counts)
             updated_agents = STORAGE.get_agents(alive_only=False)
             agent = next((a for a in updated_agents if a["id"] == agent["id"]), agent)
+            resource_state = STORAGE.get_resources()
             
             # If the action was MOVE or SLEEP, we usually stop further actions for realism
             if action_name in ["MOVE", "SLEEP"]:
@@ -272,6 +273,9 @@ def tick() -> int:
 
     # 3. Apply results sequentially (maintains DB consistency)
     for agent, intent_data in results:
+        # Refresh resource state to ensure sequential actions respect consumption
+        resource_state = STORAGE.get_resources()
+        
         thought = (intent_data.get("thought") or "")[:150]
         STORAGE.update_agent(agent["id"], last_thought=thought)
         
@@ -291,6 +295,10 @@ def tick() -> int:
 
     # Natural stat decay
     STORAGE.tick_decay()
+
+    # The Observer — Iterative Report
+    from .observer import update_observer_report
+    update_observer_report(new_tick, STORAGE)
 
     # Relationship decay
     alive = STORAGE.get_agents()

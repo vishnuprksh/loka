@@ -76,6 +76,22 @@
       letter-spacing: 3px;
       margin-bottom: 8px;
     }
+
+    #panel-observer {
+      width: 100%;
+      margin-top: 16px;
+      padding: 12px;
+      background: rgba(88, 166, 255, 0.05);
+      border: 1px solid rgba(88, 166, 255, 0.2);
+      border-radius: 6px;
+    }
+    #observer-text {
+      color: var(--blue);
+      font-size: 0.85rem;
+      line-height: 1.5;
+      font-style: italic;
+    }
+
     #worldCanvas {
       border: 1px solid var(--border);
       border-radius: 4px;
@@ -307,6 +323,13 @@
   <div id="panel-grid">
     <div class="section-title">THE GROVE</div>
     <canvas id="worldCanvas"></canvas>
+    
+    <!-- Observer Panel -->
+    <div id="panel-observer">
+        <div class="section-title">THE OBSERVER</div>
+        <div id="observer-text">Awaiting transmission…</div>
+    </div>
+
     <div id="legend">
       <span class="legend-pill">🔥 Fire Pit</span>
       <span class="legend-pill">🫐 Berries</span>
@@ -638,12 +661,7 @@ function renderChronicle(entries, tick) {
 
   const log = document.getElementById('chronicle-log');
   log.innerHTML = '';
-  for (const e of [...entries].reverse()) {
-    const div = document.createElement('div');
-    div.className = 'c-entry' + ((e.entry.includes('💰') || e.entry.includes('📢')) ? ' pay' : '');
-    div.innerHTML = `<span class="c-tick">[${e.tick}]</span>${e.entry}`;
-    log.appendChild(div);
-  }
+  // ... existing code ...
 }
 
 // ── State update ──────────────────────────────────────────────────
@@ -652,6 +670,11 @@ function applyState(s) {
   document.getElementById('berry-display').textContent = `🫐 ${s.berry_count}`;
   const totalMoney = s.agents.reduce((sum, a) => sum + (a.money ?? 0), 0);
   document.getElementById('gold-display').textContent = `💰 ${totalMoney}`;
+  
+  // Update Observer
+  if (s.observer_report) {
+    document.getElementById('observer-text').innerText = s.observer_report;
+  }
   
   // Tick down active bubbles
   activeBubbles.forEach(b => b.ticks--);

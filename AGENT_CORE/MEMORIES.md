@@ -24,6 +24,11 @@
 - **Decision:** Updated [src/simulation.py](src/simulation.py) to include a "PERSONALITY (Scale 0.0 to 1.0)" section with descriptive anchors for each trait (Greed, Sociability, Curiosity, Empathy, Assertiveness).
 - **Reasoning:** Defining the scale (0.0 to 1.0) and providing qualitative descriptions (e.g., "prioritize wealth over social harmony") ensures the LLM interprets stats as behavioral biases rather than arbitrary numbers, leading to more consistent role-playing and alignment with the agent's defined path.
 
+### 2026-04-14 - Social Survival via Emergency Calls
+- **Context:** Agents were dying silently without leveraging the community for help when stats were critical.
+- **Decision:** Integrated emergency prompts when stats hit a `DANGER_THRESHOLD` (2), instructing agents to use `TALK` to request assistance. Expanded the general "World Info" section with survival tips.
+- **Reasoning:** Leverages the existing `TALK` skill and multi-action system to simulate realistic social distress calls. Explicitly telling agents to ask for help reduces the "hallucination" that they must survive solo.
+
 ### 2026-04-14 - Implementing Informed Agency
 - **Context:** Agents were dying or making poor decisions due to lack of knowledge about world mechanics (stats, resources, trading).
 - **Decision:** Added a dedicated "Info Section" to agent prompts and a persistent `info` field in the database for personalized agent knowledge. 

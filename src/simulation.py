@@ -14,10 +14,10 @@ from .environment import THE_GROVE, Environment
 from .skills import SKILL_REGISTRY, SkillRegistry
 from .storage import SQLiteBackend, StorageBackend
 from .config import (
-    MAX_STAT_VALUE, HUNGER_THRESHOLD_LOW, ENERGY_THRESHOLD_LOW,
+    MAX_STAT_VALUE, HUNGER_THRESHOLD_LOW, ENERGY_THRESHOLD_LOW, DANGER_THRESHOLD,
     MEMORY_WINDOW_LIMIT, DEFAULT_TICK_INTERVAL, DEFAULT_BERRY_HUNGER,
     SURVIVAL_GUIDELINE, SOCIAL_STATUS_GUIDELINE, PRIMITIVE_ECONOMY_GUIDELINE, 
-    REASONING_REINFORCEMENT
+    REASONING_REINFORCEMENT, EMERGENCY_GUIDELINE
 )
 
 TICK_INTERVAL = int(os.getenv("TICK_INTERVAL", str(DEFAULT_TICK_INTERVAL)))
@@ -119,6 +119,11 @@ def _build_prompt(agent: dict, agents_at_loc: list[dict], resource_state: dict[s
     if unanswered_message:
         mandatory_reply_instruction = f"\n\nCRITICAL: {unanswered_message} was just said to you. Social harmony is key. You MUST respond in this tick using the TALK action to the correct target. If you are too hungry/tired to talk, at least acknowledge them briefly before leaving."
 
+    # Emergency behavior
+    emergency_instruction = ""
+    if agent["hunger"] <= DANGER_THRESHOLD or agent["energy"] <= DANGER_THRESHOLD:
+        emergency_instruction = f"\n\n🚨 {EMERGENCY_GUIDELINE}"
+
     # Calculated community score for the prompt
     community_score = STORAGE.get_public_social_status(agent["id"])
     social_urge = ""
@@ -142,10 +147,12 @@ STATS & SURVIVAL:
 - Fullness/Rest: {SURVIVAL_GUIDELINE}
 - Hunger stabilization: EAT can restore fullness. (e.g., eating a berry gives {DEFAULT_BERRY_HUNGER} points). Keep food in inventory.
 - Energy stabilization: SLEEP restores energy. Productivity is better at the 'shelter'. 
+- INVENTORY TIP: You cannot eat or give items you do not have. Use FORAGE or harvest resources to get items.
+- SOCIAL SURVIVAL: If you have no food and are starving (Hunger < 3), you MUST ask others for help using TALK. Most agents will help a friend in need.
 - SOCIAL STATUS: {SOCIAL_STATUS_GUIDELINE}
 - PRIMITIVE ECONOMY: {PRIMITIVE_ECONOMY_GUIDELINE}
 ECONOMY:
-- Money: Gold is used for trading.
+- Money: Gold is used for trading. Use PAY to give gold and OFFER_FOR_SALE to set a price for items in your inventory.
 - Trading: You can PAY others for items or use OFFER_FOR_SALE. Negotiation is key.
 """
     custom_info = agent.get("info", "")
@@ -176,7 +183,7 @@ CONVERSATION CONTEXT:
 RECENT MEMORIES (Most recent at top):
 {mem_text}
 
-MISSION: Survive and build a society. {path_instruction}{economy_instruction}{mandatory_reply_instruction}{social_urge}
+MISSION: Survive and build a society. {path_instruction}{economy_instruction}{mandatory_reply_instruction}{social_urge}{emergency_instruction}
 
 AVAILABLE ACTIONS:
   {skill_lines_text}

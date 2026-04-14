@@ -19,7 +19,8 @@
 - [ ] **Phase 3: Modular Architecture (Phase 1 complete)**
   - [x] `src/environment.py` — `Location`, `Resource`, `Environment`, `THE_GROVE`
   - [x] Implement Info Section for agents (World mechanics, bar stabilization, trading)
-  - [ ] Support dynamic `info` field in `agents` table
+  - [x] Enrich Agent World Info prompt section
+  - [x] Support dynamic `info` field in `agents` table
   - [x] `src/storage.py` — `StorageBackend` ABC + `SQLiteBackend`
   - [x] `src/skills.py` — `Skill` ABC, `SkillRegistry`, all 7 skills, `SKILL_REGISTRY`
   - [x] `src/db.py` — updated schema (`world_resources` table, env-seeding)
@@ -39,6 +40,7 @@
   - [x] Multi-party Communication (Broadcast to same-location agents via `TALK` to "everyone")
   - [x] Improved prompt clarity for Hunger/Energy bars (0=Empty, 10=Full)
   - [x] **Implemented Primitive Social-Economic Logic (Hunger-Trade Loop)**
+  - [x] Implement Emergency Help logic (TALK when stats < Danger Threshold)
   - [ ] Relationship Mapping
   - [ ] Resource/Economic System
 

@@ -305,7 +305,8 @@ def tick() -> int:
 
     # The Observer — Iterative Report
     from .observer import update_observer_report
-    update_observer_report(new_tick, STORAGE)
+    report = update_observer_report(new_tick, STORAGE)
+    STORAGE.add_chronicle(new_tick, f"👁️ Observer: {report}", "OBSERVER", "SYSTEM")
 
     # Relationship decay
     alive = STORAGE.get_agents()
@@ -392,6 +393,7 @@ def get_state_dict() -> dict:
 
     return {
         "tick":        world["tick"],
+        "report":      STORAGE.get_latest_report(),
         "berry_count": resource_state.get("berry", 0),  # backward-compat for frontend
         "resources":   resource_state,
         "agents": [

@@ -688,8 +688,8 @@ function applyState(s) {
   document.getElementById('gold-display').textContent = `💰 ${totalMoney}`;
   
   // Update Observer
-  if (s.observer_report) {
-    document.getElementById('observer-text').innerText = s.observer_report;
+  if (s.report) {
+    document.getElementById('observer-text').innerText = s.report;
   }
   
   // Tick down active bubbles

@@ -112,6 +112,9 @@ class StorageBackend(ABC):
         agent_id: str = "SYSTEM",
     ) -> None: ...
 
+    @abstractmethod
+    def get_latest_report(self) -> str: ...
+
     # ---- Bulk helpers ----------------------------------------------------------
 
     @abstractmethod
@@ -323,6 +326,12 @@ class SQLiteBackend(StorageBackend):
                 f.write(log_line)
         except Exception as e:
             print(f"Warning: Could not write to chronicle.log: {e}")
+
+    def get_latest_report(self) -> str:
+        conn = get_conn()
+        row = conn.execute("SELECT report FROM observer_report ORDER BY tick DESC LIMIT 1").fetchone()
+        conn.close()
+        return row["report"] if row else "Awaiting transmission…"
 
     # ---- Bulk helpers ----------------------------------------------------------
 

@@ -81,8 +81,7 @@ def init_db(env=None) -> None:
             );
 
             CREATE TABLE IF NOT EXISTS observer_report (
-                id    INTEGER PRIMARY KEY DEFAULT 1,
-                tick  INTEGER NOT NULL,
+                tick  INTEGER PRIMARY KEY,
                 report TEXT   NOT NULL
             );
 

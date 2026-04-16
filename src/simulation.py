@@ -142,10 +142,14 @@ def _build_prompt(agent: dict, agents_at_loc: list[dict], resource_state: dict[s
     world_info = f"""--- THE WORLD ---
 LOCATIONS: {locations_text}
 TICK: The world runs in discrete steps called 'ticks'.
-STATS & SURVIVAL:
-- Fullness/Rest: You lose 1 Fullness and 1 Rest per tick. 0 = Death.
+STATS & SURVIVAL (MANDATORY):
+- Fullness/Rest: You lose 1 Fullness and 1 Rest per tick. 
+- DEATH: If either Fullness (Hunger) OR Rest (Energy) hit 0, YOU DIE.
+- RESTING RULE: When you are at 'shelter' or 'fire_pit', you are RESTING. 
+  - Rest recovery: Increasess 'Rest/Vigor'.
+  - Hunger stability: Fullness DOES NOT decay while resting. 
 - Hunger stabilization: EAT restores fullness (Berry = {DEFAULT_BERRY_HUNGER}).
-- Energy stabilization: SLEEP restores energy (Shelter is best). 
+- Energy stabilization: SLEEP restores energy (Shelter is most efficient).
 - INVENTORY TIP: You cannot eat or give items you do not have. Use FORAGE or harvest resources to get items.
 - SOCIAL STATUS: {SOCIAL_STATUS_GUIDELINE}
 
@@ -161,8 +165,8 @@ PATH: {agent.get('path', 'Survivor')}
 {info_section}
 
 STATE:
-- Energy/Fullness: {agent['hunger']}/{MAX_STAT_VALUE}  (0=STARVING, {MAX_STAT_VALUE}=FULL. Eat if below {HUNGER_THRESHOLD_LOW}!)
-- Rest/Vigor:      {agent['energy']}/{MAX_STAT_VALUE}  (0=EXHAUSTED, {MAX_STAT_VALUE}=RESTED. Sleep if below {ENERGY_THRESHOLD_LOW}!)
+- Energy/Fullness: {agent['hunger']}/{MAX_STAT_VALUE}  (0=STARVING/DEATH, {MAX_STAT_VALUE}=FULL)
+- Rest/Vigor:      {agent['energy']}/{MAX_STAT_VALUE}  (0=EXHAUSTED/DEATH, {MAX_STAT_VALUE}=RESTED)
 - Community:       {community_score}/{MAX_STAT_VALUE} (Calculated from how others feel about you)
 - Wealth (Gold):   {agent.get('money', 0)}
 - Location:        {agent['location']}

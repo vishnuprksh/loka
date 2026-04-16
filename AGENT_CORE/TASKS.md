@@ -50,6 +50,12 @@
   - [x] Observer Mode (5-tick Evaluation Loop with Success/Failure metrics)
   - [ ] Web/Desktop Interface
 
+- [ ] **Phase 5: Survival & Rest Mechanics Update**
+  - [x] Implement Mandatory Sleep (Energy 0 = Death)
+  - [x] Implement Energy recovery / Hunger preservation during rest
+  - [x] Update Agent Prompts with new survival constraints
+  - [x] Update Overview/Memories with strategic shifts
+
 - [ ] **Phase 5: Multi-Action Intent System**
   - [ ] Update LLM parser for `actions` array support
   - [ ] Refactor `simulation.py` tick loop for sequential action processing

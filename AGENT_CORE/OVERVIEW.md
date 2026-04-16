@@ -11,8 +11,10 @@
 - **Zero-Touch Autonomy:** Agents make all decisions; users only observe.
 - **Emergent Society:** Rules, hierarchies, and culture should emerge from agent interactions.
 - **Persistence:** The simulation runs continuously, even when no user is watching.
-- **Informed Agency:** Agents should have access to world rules and mechanics to make better survival and social decisions.
+- **Informed Agency:** Agents should have access to world rules and mechanics (including lethality of exhaustion) to make better survival and social decisions.
 
 **Constraints:**
 - Scalability of LLM calls (Cost and Latency).
 - Consistency of world state across multiple concurrent interactions.
+- **Dual Survival Condition:** Agents perish if either hunger OR energy deplete to zero.
+- **Resting Stat Preservation:** Resting at key locations (shelter/fire_pit) stops hunger decay and promotes energy recovery.

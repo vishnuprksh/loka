@@ -1,4 +1,9 @@
 # Strategic Memories
+### 2026-04-16 - Mandatory Sleep and Resting Buff
+- **Context:** Energy was previously a non-lethal stat used mostly for action gating.
+- **Decision:** Updated [src/storage.py](src/storage.py) and [src/simulation.py](src/simulation.py) to make Energy-at-Zero (0) fatal.
+- **Reasoning:** Elevation of Energy to a critical survival stat (like Hunger) forces better long-term planning and makes resting locations (Shelter/Fire Pit) strategically vital. Hunger also pauses while resting to provide more survival breathing room.
+
 ### 2026-04-16 - Randomized Action Application
 - **Context:** Resource harvesting (Foraging) was biased towards agents with lower IDs because they were processed sequentially.
 - **Decision:** Shuffled the results of parallel LLM thinking before applying them to the world state in [src/simulation.py](src/simulation.py).

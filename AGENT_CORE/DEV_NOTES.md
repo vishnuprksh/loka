@@ -3,3 +3,4 @@
 - if the survival is not a problem at all, people becomes lazy to talk becasue, they don't have any purpose
 - info is everything, if someone doesn't know that he has to eat when hungry, he will die
 - reasoning is very important, if people can't calculate how much food he has to store
+- we observed negotiated price agreements between agents, without any commands

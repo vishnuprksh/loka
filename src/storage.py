@@ -338,18 +338,23 @@ class SQLiteBackend(StorageBackend):
     def tick_decay(self) -> None:
         conn = get_conn()
         with conn:
-            # Stats decay by 1 EVERY tick as requested
-            conn.execute("UPDATE agents SET hunger=MAX(0,hunger-1) WHERE alive=1")
+            # Stats decay logic:
+            # 1. Hunger decays by 1 EVERY tick UNLESS agent is at shelter or fire_pit (resting)
             conn.execute(
-                "UPDATE agents SET energy=MAX(0,energy-1) WHERE alive=1 AND location!='shelter' AND location!='fire_pit'"
+                "UPDATE agents SET hunger=MAX(0, hunger-1) WHERE alive=1 AND location!='shelter' AND location!='fire_pit'"
+            )
+            # 2. Energy decays by 1 EVERY tick UNLESS agent is at shelter or fire_pit
+            conn.execute(
+                "UPDATE agents SET energy=MAX(0, energy-1) WHERE alive=1 AND location!='shelter' AND location!='fire_pit'"
             )
 
         conn.close()
 
     def kill_starved_agents(self, tick: int = 0) -> list[dict]:
         conn = get_conn()
+        # Death occurs if Hunger=0 OR Energy=0
         dead = conn.execute(
-            "SELECT id, name, money FROM agents WHERE hunger=0 AND alive=1"
+            "SELECT id, name, money FROM agents WHERE (hunger=0 OR energy=0) AND alive=1"
         ).fetchall()
         dead_list = [dict(d) for d in dead]
         if not dead_list:

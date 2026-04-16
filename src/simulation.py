@@ -7,6 +7,7 @@ are added.
 """
 import json
 import os
+import random
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 
@@ -274,6 +275,8 @@ def tick() -> int:
         results = list(executor.map(_agent_think, prompts))
 
     # 3. Apply results sequentially (maintains DB consistency)
+    # Shuffle results to ensure fairness for concurrent actions (e.g. foraging same resource)
+    random.shuffle(results)
     for agent, intent_data in results:
         # Refresh resource state to ensure sequential actions respect consumption
         resource_state = STORAGE.get_resources()

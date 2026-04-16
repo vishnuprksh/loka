@@ -41,6 +41,7 @@
   - [x] Improved prompt clarity for Hunger/Energy bars (0=Empty, 10=Full)
   - [x] **Implemented Primitive Social-Economic Logic (Hunger-Trade Loop)**
   - [x] Implement Emergency Help logic (TALK when stats < Danger Threshold)
+  - [x] **Implemented Randomized Fair Foraging (Shuffled action application)**
   - [ ] Relationship Mapping
   - [ ] Resource/Economic System
 

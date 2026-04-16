@@ -1,4 +1,9 @@
 # Strategic Memories
+### 2026-04-16 - Randomized Action Application
+- **Context:** Resource harvesting (Foraging) was biased towards agents with lower IDs because they were processed sequentially.
+- **Decision:** Shuffled the results of parallel LLM thinking before applying them to the world state in [src/simulation.py](src/simulation.py).
+- **Reasoning:** Ensures fairness in resource competition. In a survival simulation, deterministic "speed" based on database order breaks immersion and creates unfair advantages.
+
 ### 2026-04-16 - Observer Frequency and Evaluation Logic
 - **Context:** User requested less frequent but more analytical observer reports.
 - **Decision:** Changed observer frequency to once every 5 ticks and added "Success" (Emergence) vs "Failure" (Roboticism) metrics.

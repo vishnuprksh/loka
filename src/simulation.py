@@ -303,10 +303,11 @@ def tick() -> int:
     # Natural stat decay
     STORAGE.tick_decay()
 
-    # The Observer — Iterative Report
-    from .observer import update_observer_report
-    report = update_observer_report(new_tick, STORAGE)
-    STORAGE.add_chronicle(new_tick, f"👁️ Observer: {report}", "OBSERVER", "SYSTEM")
+    # The Observer — Iterative Report (Every 5 Ticks)
+    if new_tick % 5 == 0:
+        from .observer import update_observer_report
+        report = update_observer_report(new_tick, STORAGE)
+        STORAGE.add_chronicle(new_tick, f"👁️ Observer: {report}", "OBSERVER", "SYSTEM")
 
     # Relationship decay
     alive = STORAGE.get_agents()

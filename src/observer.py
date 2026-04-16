@@ -9,29 +9,36 @@ from .storage import StorageBackend
 
 OBSERVER_PROMPT = """
 You are The Observer of Loka, an autonomous virtual world. 
-Your goal is to provide a concise, high-level situational report for the current tick.
+Your goal is to provide a situational report and project evaluation for the last 5 ticks.
 
 CONTEXT:
 - Previous Report: {last_report}
-- New Chronicle Logs (Tick {tick}):
+- New Chronicle Logs (Ticks {start_tick} to {end_tick}):
 {logs}
 
 INSTRUCTIONS:
-1. Synthesize the new logs into a clear, punchy update (2-4 sentences).
-2. Use the "Previous Report" to avoid repeat data and track evolving trends (e.g., "Dax is still starving" vs just "Dax is hungry").
-3. Focus on: Social shifts, resource scarcity, deaths, or unusual agent behavior.
-4. Output ONLY the report text. No headers, no JSON.
+1. SITUATIONAL REPORT: Synthesize the logs into a clear, punchy update (2-3 sentences).
+2. PROJECT SUCCESS: Identify something NEW or SURPRISING that happened without specific instructions (emergent behavior, e.g., agents developing a trade ritual, helping a stranger without prompts). 
+3. PROJECT FAILURE: Identify REPEATED or ROBOTIC patterns that feel unnatural or "looping" (e.g., agents repeating the same greeting for 5 ticks, walking in circles, or failing to react to a crisis).
+4. Output format:
+   REPORT: [Text]
+   SUCCESS: [Text]
+   FAILURE: [Text]
 """
 
 def update_observer_report(tick: int, storage: StorageBackend) -> str:
-    """Fetch latest logs, get last report, and generate a new one via LLM."""
+    """Fetch logs from the last 5 ticks and generate an evaluation report."""
     # 1. Get last report
     conn = storage.get_conn()
     last_row = conn.execute("SELECT report FROM observer_report ORDER BY tick DESC LIMIT 1").fetchone()
     last_report = last_row["report"] if last_row else "No previous reports. The world has just begun."
 
-    # 2. Get logs for this tick
-    logs_rows = conn.execute("SELECT entry FROM chronicle WHERE tick = ?", (tick,)).fetchall()
+    # 2. Get logs for the last 5 ticks
+    start_tick = max(0, tick - 4)
+    logs_rows = conn.execute(
+        "SELECT entry FROM chronicle WHERE tick BETWEEN ? AND ? ORDER BY tick ASC",
+        (start_tick, tick)
+    ).fetchall()
     conn.close()
 
     logs_text = "\n".join([f"- {r['entry']}" for r in logs_rows]) or "Nothing notable happened."
@@ -39,20 +46,22 @@ def update_observer_report(tick: int, storage: StorageBackend) -> str:
     # 3. Call LLM
     prompt = OBSERVER_PROMPT.format(
         last_report=last_report,
-        tick=tick,
+        start_tick=start_tick,
+        end_tick=tick,
         logs=logs_text
     )
     
     new_report = _call_observer_llm(prompt)
 
     # 4. Persistence
-    conn = storage.get_conn()
-    with conn:
-        conn.execute("""
-            INSERT INTO observer_report (tick, report) 
-            VALUES (?, ?)
-        """, (tick, new_report))
-    conn.close()
+    if "The Observer is silent" not in new_report:
+        conn = storage.get_conn()
+        with conn:
+            conn.execute("""
+                INSERT INTO observer_report (tick, report) 
+                VALUES (?, ?)
+            """, (tick, new_report))
+        conn.close()
 
     return new_report
 

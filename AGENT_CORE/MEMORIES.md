@@ -1,4 +1,9 @@
 # Strategic Memories
+### 2026-04-16 - Observer Frequency and Evaluation Logic
+- **Context:** User requested less frequent but more analytical observer reports.
+- **Decision:** Changed observer frequency to once every 5 ticks and added "Success" (Emergence) vs "Failure" (Roboticism) metrics.
+- **Reasoning:** A 5-tick window provides enough context for the LLM to identify patterns (robotic) or surprises (emergent) that a single-tick view misses, while reducing LLM overhead.
+
 ### 2026-04-14 - Fixed Chronicle and Observer Logging
 - **Context:** The "Chronicles" tab was empty in the frontend, and the Observer LLM was failing to parse logs.
 - **Decision:** Implemented `renderChronicle` in [static/index.html](static/index.html) and fixed a dictionary access bug in [src/observer.py](src/observer.py) (`r[entry]` -> `r['entry']`).

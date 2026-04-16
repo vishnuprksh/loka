@@ -23,9 +23,15 @@ CHRONICLE_LIMIT = 30
 ENERGY_GAIN_SHELTER = 5
 ENERGY_GAIN_ANYWHERE = 2
 
-# Behavioral Guidelines
-SURVIVAL_GUIDELINE = "SURVIVAL IS YOUR ABSOLUTE PRIORITY. Every tick you lose 1 Fullness and 1 Rest. If either hits 0, you PERISH. You can now perform multiple actions in one tick (e.g., EAT and TALK). Think 5-10 ticks ahead: do you have enough food in your inventory? Are you near a shelter to rest? Do not wait until you are starving to act."
-SOCIAL_STATUS_GUIDELINE = "Social Bar (Community) is your Loka Identity. 0-3 = ISOLATED (Depression, others may ignore you), 4-6 = STABLE (A face in the crowd), 7-10 = INFLUENTIAL (People listen to you, trading is easier). This bar is VISIBLE to everyone."
-PRIMITIVE_ECONOMY_GUIDELINE = "SOCIAL SHARING & HUNGER: If you are hungry, ASK for food via TALK. If you have extra food, SHARE it freely (GIVE_BERRY) with those you like (High Relationship score). For those you dislike or don't know well, SELL items at a higher price (OFFER_FOR_SALE + PAY) to build a Gold buffer for your own future survival. Sharing for free to unlikable people is considered foolishness."
-REASONING_REINFORCEMENT = "Before acting, perform a SITUATIONAL ANALYSIS in your 'thought' field: Evaluate your current survival buffer, assess your social standing, and decide if you are playing it too safe or taking too many risks."
-EMERGENCY_GUIDELINE = "CRITICAL DANGER: One or more of your survival stats (Energy/Fullness or Rest/Vigor) is at 2 or below. You are on the verge of death. You MUST use the TALK action to everyone or a specific nearby agent to CALL FOR HELP (e.g., 'I am starving, please give me a berry!'). If you have any food, EAT it immediately. Do not prioritize anything else over immediate survival."
+# Game Rules & Objectives
+WIN_CONDITION_GOLD = 30
+INHERITANCE_ENABLED = True
+
+# Behavioral Framework (Descriptive, not Prescriptive)
+GAME_RULES = f"THE GAME: Your absolute goal is to accumulate {WIN_CONDITION_GOLD} Gold coins. Survival is the prerequisite. If you die, your wealth is equally distributed among the survivors. There are no other rules. You define your own morality and strategy."
+SOCIAL_STATUS_GUIDELINE = "Social Bar (Community) is your Loka Identity. 0-3 = ISOLATED, 4-6 = STABLE, 7-10 = INFLUENTIAL. This affects how others perceive your value as a trade partner or ally."
+REASONING_REINFORCEMENT = """Your 'thought' MUST follow this Strategic Planning Template:
+1. SITUATION: Analysis of your current stats, gold, and immediate surroundings.
+2. STRATEGY: Your long-term plan to reach 30 Gold (e.g., 'Monopolize resources', 'Build trade alliances', 'Wait for inheritance').
+3. EXECUTION: The specific steps you are taking in this tick to advance your strategy."""
+

@@ -16,8 +16,8 @@ from .storage import SQLiteBackend, StorageBackend
 from .config import (
     MAX_STAT_VALUE, HUNGER_THRESHOLD_LOW, ENERGY_THRESHOLD_LOW, DANGER_THRESHOLD,
     MEMORY_WINDOW_LIMIT, DEFAULT_TICK_INTERVAL, DEFAULT_BERRY_HUNGER,
-    SURVIVAL_GUIDELINE, SOCIAL_STATUS_GUIDELINE, PRIMITIVE_ECONOMY_GUIDELINE, 
-    REASONING_REINFORCEMENT, EMERGENCY_GUIDELINE
+    SOCIAL_STATUS_GUIDELINE, 
+    REASONING_REINFORCEMENT, GAME_RULES
 )
 
 TICK_INTERVAL = int(os.getenv("TICK_INTERVAL", str(DEFAULT_TICK_INTERVAL)))
@@ -111,18 +111,16 @@ def _build_prompt(agent: dict, agents_at_loc: list[dict], resource_state: dict[s
         "Commoner": "YOUR PATH: The Commoner (Green). Survival through stability and harmony. Be reliable, support others, and ensure the community remains peaceful and steady. TRADE: Fair trades ensure stability for everyone.",
         "Leader": "YOUR PATH: The Leader (Red). Survival through decisive action and results. Take charge, prioritize efficiency, and lead the group toward clear objectives. TRADE: Manage the group's wealth to ensure mission success.",
     }
-    path_instruction = path_missions.get(agent.get("path"), "YOUR PATH: The Survivor. Do what you must to stay alive.")
+    path_instruction = path_missions.get(agent.get("path"), "YOUR PATH: The Survivor. Choose your own strategy to win.")
 
-    economy_instruction = "\n\nECONOMY: Gold is the medium of exchange. You can PAY others for goods or OFFER_FOR_SALE items to earn Gold. Your 'Greed' trait (0-1) influences how much you value wealth vs. social harmony."
+    economy_instruction = ""
     
     mandatory_reply_instruction = ""
     if unanswered_message:
         mandatory_reply_instruction = f"\n\nCRITICAL: {unanswered_message} was just said to you. Social harmony is key. You MUST respond in this tick using the TALK action to the correct target. If you are too hungry/tired to talk, at least acknowledge them briefly before leaving."
 
-    # Emergency behavior
+    # Emergency behavior (Removed as requested: no spoon-feeding)
     emergency_instruction = ""
-    if agent["hunger"] <= DANGER_THRESHOLD or agent["energy"] <= DANGER_THRESHOLD:
-        emergency_instruction = f"\n\n🚨 {EMERGENCY_GUIDELINE}"
 
     # Calculated community score for the prompt
     community_score = STORAGE.get_public_social_status(agent["id"])
@@ -142,18 +140,15 @@ def _build_prompt(agent: dict, agents_at_loc: list[dict], resource_state: dict[s
 
     world_info = f"""--- THE WORLD ---
 LOCATIONS: {locations_text}
-TICK: The world runs in discrete steps called 'ticks'. Each action happens in a tick.
+TICK: The world runs in discrete steps called 'ticks'.
 STATS & SURVIVAL:
-- Fullness/Rest: {SURVIVAL_GUIDELINE}
-- Hunger stabilization: EAT can restore fullness. (e.g., eating a berry gives {DEFAULT_BERRY_HUNGER} points). Keep food in inventory.
-- Energy stabilization: SLEEP restores energy. Productivity is better at the 'shelter'. 
+- Fullness/Rest: You lose 1 Fullness and 1 Rest per tick. 0 = Death.
+- Hunger stabilization: EAT restores fullness (Berry = {DEFAULT_BERRY_HUNGER}).
+- Energy stabilization: SLEEP restores energy (Shelter is best). 
 - INVENTORY TIP: You cannot eat or give items you do not have. Use FORAGE or harvest resources to get items.
-- SOCIAL SURVIVAL: If you have no food and are starving (Hunger < 3), you MUST ask others for help using TALK. Most agents will help a friend in need.
 - SOCIAL STATUS: {SOCIAL_STATUS_GUIDELINE}
-- PRIMITIVE ECONOMY: {PRIMITIVE_ECONOMY_GUIDELINE}
-ECONOMY:
-- Money: Gold is used for trading. Use PAY to give gold and OFFER_FOR_SALE to set a price for items in your inventory.
-- Trading: You can PAY others for items or use OFFER_FOR_SALE. Negotiation is key.
+
+{GAME_RULES}
 """
     custom_info = agent.get("info", "")
     info_section = f"\n\n--- AGENT INFO ---\n{world_info}\n{custom_info}"
@@ -303,15 +298,29 @@ def tick() -> int:
     # Natural stat decay
     STORAGE.tick_decay()
 
+    # Starvation check (Game over check)
+    dead_list = STORAGE.kill_starved_agents(new_tick)
+    for d in dead_list:
+        # Broadcast death memory to all surviving agents
+        survivors = STORAGE.get_agents(alive_only=True)
+        for s in survivors:
+            STORAGE.add_memory(s["id"], new_tick, f"💀 {d['name']} has perished.")
+
     # The Observer — Iterative Report (Every 5 Ticks)
     if new_tick % 5 == 0:
         from .observer import update_observer_report
         report = update_observer_report(new_tick, STORAGE)
         STORAGE.add_chronicle(new_tick, f"👁️ Observer: {report}", "OBSERVER", "SYSTEM")
 
-    # Relationship decay
-    alive = STORAGE.get_agents()
-    for a in alive:
+    # Relationship decay & Social normalization
+    alive_agents = STORAGE.get_agents(alive_only=True)
+    if new_tick % 5 == 0:
+        for a in alive_agents:
+            # Check for winners
+            if a.get('money', 0) >= 30:
+                STORAGE.add_chronicle(new_tick, f"🏆 {a['name']} HAS REACHED 30 GOLD AND WON THE GAME!", "WINNER", a["id"])
+
+    for a in alive_agents:
         # Relationships decay slowly over time if no interaction (-1 every 10 ticks)
         if new_tick % 10 == 0:
             conn = STORAGE.get_conn()
@@ -320,17 +329,6 @@ def tick() -> int:
                     "UPDATE relationships SET score=MAX(0, score-1) WHERE agent_b=?", (a["id"],)
                 )
             conn.close()
-
-    # Starvation check
-    dead_list = STORAGE.kill_starved_agents()
-    for d in dead_list:
-        death_msg = f"💀 {d['name']} has perished (starvation)"
-        STORAGE.add_chronicle(new_tick, death_msg, "DEATH", d["id"])
-        
-        # Broadcast death memory to all surviving agents
-        survivors = STORAGE.get_agents(alive_only=True)
-        for s in survivors:
-            STORAGE.add_memory(s["id"], new_tick, death_msg)
 
     # Tick summary log
     alive_agents = STORAGE.get_agents()

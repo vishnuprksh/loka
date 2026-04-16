@@ -123,7 +123,7 @@ class StorageBackend(ABC):
         ...
 
     @abstractmethod
-    def kill_starved_agents(self) -> list[dict]:
+    def kill_starved_agents(self, tick: int = 0) -> list[dict]:
         """Mark agents with hunger=0 as dead; return their records."""
         ...
 
@@ -346,14 +346,37 @@ class SQLiteBackend(StorageBackend):
 
         conn.close()
 
-    def kill_starved_agents(self) -> list[dict]:
+    def kill_starved_agents(self, tick: int = 0) -> list[dict]:
         conn = get_conn()
         dead = conn.execute(
-            "SELECT id, name FROM agents WHERE hunger=0 AND alive=1"
+            "SELECT id, name, money FROM agents WHERE hunger=0 AND alive=1"
         ).fetchall()
         dead_list = [dict(d) for d in dead]
+        if not dead_list:
+            conn.close()
+            return []
+
+        # Mark agents as dead first
         with conn:
             for d in dead_list:
                 conn.execute("UPDATE agents SET alive=0 WHERE id=?", (d["id"],))
+
+        # Handle Inheritance (Equally distribute gold from deceased to survivors)
+        living = conn.execute("SELECT id FROM agents WHERE alive=1").fetchall()
+        if living:
+            total_inheritance = sum(d["money"] for d in dead_list)
+            share = total_inheritance // len(living)
+            if share > 0:
+                with conn:
+                    for l in living:
+                        conn.execute("UPDATE agents SET money=money+? WHERE id=?", (share, l["id"]))
+                
+                # Update dead_list for chronicle record with specific redistribution info
+                for d in dead_list:
+                    self.add_chronicle(tick, f"💀 {d['name']} has perished. {d['money']} gold distributed among survivors ({share} each).", "DEATH", d["id"])
+            else:
+                for d in dead_list:
+                    self.add_chronicle(tick, f"💀 {d['name']} has perished. No gold inherited (Bankrupt).", "DEATH", d["id"])
+        
         conn.close()
         return dead_list

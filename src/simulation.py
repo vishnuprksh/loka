@@ -288,7 +288,7 @@ def tick() -> int:
         # Refresh resource state to ensure sequential actions respect consumption
         resource_state = STORAGE.get_resources()
         
-        thought = (intent_data.get("thought") or "")[:150]
+        thought = (intent_data.get("thought") or "")
         STORAGE.update_agent(agent["id"], last_thought=thought)
         
         # Determine if we should clear unanswered flags
@@ -361,7 +361,7 @@ def tick() -> int:
 # Agent management
 # ------------------------------------------------------------------
 def create_agent(name: str, greed: float, sociability: float, curiosity: float, 
-                 empathy: float = 0.5, assertiveness: float = 0.5, path: str = None) -> str:
+                 empathy: float = 0.5, assertiveness: float = 0.5, path: str = None, money: int = 10) -> str:
     agent_id = str(uuid.uuid4())[:8]
 
     # Determine path based on 4-color model if not provided
@@ -374,7 +374,7 @@ def create_agent(name: str, greed: float, sociability: float, curiosity: float,
         }
         path = max(traits, key=traits.get)
 
-    STORAGE.create_agent(agent_id, name, greed, sociability, curiosity, empathy, assertiveness, path=path)
+    STORAGE.create_agent(agent_id, name, greed, sociability, curiosity, empathy, assertiveness, path=path, money=money)
     world = STORAGE.get_world()
     STORAGE.add_chronicle(world["tick"], f"✨ {name} ({path}) has entered {ENV.name}", "SPAWN", agent_id)
     return agent_id
@@ -406,6 +406,12 @@ def get_state_dict() -> dict:
     chronicle = STORAGE.get_chronicle(limit=40)
     resource_state = STORAGE.get_resources()
 
+    # Build social matrix: { observer_id: { target_id: score } }
+    social_matrix = {}
+    for a in agents:
+        if a["alive"]:
+            social_matrix[a["id"]] = STORAGE.get_relationships(a["id"])
+
     return {
         "tick":        world["tick"],
         "game_over":   bool(world.get("game_over", 0)),
@@ -413,6 +419,7 @@ def get_state_dict() -> dict:
         "report":      STORAGE.get_latest_report(),
         "berry_count": resource_state.get("berry", 0),  # backward-compat for frontend
         "resources":   resource_state,
+        "social_matrix": social_matrix,
         "agents": [
             {
                 "id":           a["id"],

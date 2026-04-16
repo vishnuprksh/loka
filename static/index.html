@@ -119,6 +119,8 @@
       overflow-y: auto;
       border-right: 1px solid var(--border);
       min-width: 240px;
+      display: flex;
+      flex-direction: column;
     }
     .section-title {
       color: var(--muted);
@@ -126,6 +128,35 @@
       letter-spacing: 3px;
       margin-bottom: 10px;
     }
+
+    #social-matrix-container {
+      margin-bottom: 20px;
+      padding: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    #social-matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.65rem;
+      color: var(--muted);
+    }
+    #social-matrix-table th, #social-matrix-table td {
+      border: 1px solid var(--border);
+      padding: 4px;
+      text-align: center;
+    }
+    #social-matrix-table th {
+      font-weight: normal;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .social-val {
+      font-weight: bold;
+    }
+    .social-val.high { color: var(--green); }
+    .social-val.low { color: var(--red); }
+    .social-val.neutral { color: var(--muted); }
 
     .agent-card {
       background: var(--surface);
@@ -156,6 +187,9 @@
       margin-top: 6px;
       border-left: 2px solid var(--purple);
       padding-left: 8px;
+      max-height: 4.8rem;
+      overflow-y: auto;
+      line-height: 1.2;
     }
 
     .stat-row { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
@@ -339,6 +373,21 @@
 
   <!-- Agents -->
   <div id="panel-agents">
+    <div id="social-matrix-container">
+      <div class="section-title">SOCIAL MATRIX (Opinions)</div>
+      <table id="social-matrix-table">
+        <thead>
+          <tr id="social-matrix-header">
+            <th>Target ↘</th>
+          </tr>
+        </thead>
+        <tbody id="social-matrix-body">
+        </tbody>
+      </table>
+      <div style="font-size: 0.55rem; color: var(--muted); margin-top: 6px; text-align: right;">
+        * Rows: Who is feeling. Columns: Who they feel about.
+      </div>
+    </div>
     <div class="section-title">AGENTS</div>
     <div id="agents-list"></div>
   </div>
@@ -729,8 +778,66 @@ function applyState(s) {
   });
 
   drawWorld(s);
+  renderSocialMatrix(s.agents, s.social_matrix);
   renderAgents(s.agents);
   renderChronicle(s.chronicle, s.tick);
+}
+
+function renderSocialMatrix(agents, matrix) {
+  const container = document.getElementById('social-matrix-container');
+  if (!matrix || Object.keys(matrix).length === 0) {
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = 'block';
+
+  const aliveAgents = agents.filter(a => a.alive);
+  const headerRow = document.getElementById('social-matrix-header');
+  const body = document.getElementById('social-matrix-body');
+
+  // Reset
+  headerRow.innerHTML = '<th>Feelings ↘</th>';
+  body.innerHTML = '';
+
+  // Add headers for each agent
+  aliveAgents.forEach(a => {
+    const th = document.createElement('th');
+    th.textContent = a.name;
+    th.style.color = agentColor(a.name);
+    headerRow.appendChild(th);
+  });
+
+  // Create rows for each agent
+  aliveAgents.forEach(agentA => {
+    const tr = document.createElement('tr');
+    
+    // Row label (Feeling Agent)
+    const th = document.createElement('th');
+    th.textContent = agentA.name;
+    th.style.color = agentColor(agentA.name);
+    th.style.textAlign = 'left';
+    tr.appendChild(th);
+
+    // Cells for each target agent
+    aliveAgents.forEach(agentB => {
+      const td = document.createElement('td');
+      if (agentA.id === agentB.id) {
+        td.textContent = '-';
+        td.style.color = 'var(--border)';
+      } else {
+        const score = (matrix[agentA.id] && matrix[agentA.id][agentB.id]) !== undefined 
+                      ? matrix[agentA.id][agentB.id] 
+                      : 5;
+        td.textContent = score;
+        td.className = 'social-val';
+        if (score >= 7) td.classList.add('high');
+        else if (score <= 3) td.classList.add('low');
+        else td.classList.add('neutral');
+      }
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  });
 }
 
 // ── WebSocket ─────────────────────────────────────────────────────

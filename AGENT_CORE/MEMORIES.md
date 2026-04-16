@@ -1,4 +1,9 @@
 # Strategic Memories
+### 2026-04-16 - Win Condition and Game Halt
+- **Context:** The simulation was previously an endless loop where agents just survived until death.
+- **Decision:** Implemented a "Win Condition" at 30 gold. When an agent reaches this mark, `game_over` is set to 1 in the database, a global announcement is made in the Chronicle and Agent Memories, and the backend `tick()` function returns early without processing further logic.
+- **Reasoning:** Adding a clear objective (30 Gold) transform the survival sandbox into a competitive/cooperative game with a defined end-state, allowing for "Success" metrics and a sense of closure for the observer.
+
 ### 2026-04-16 - Mandatory Sleep and Resting Buff
 - **Context:** Energy was previously a non-lethal stat used mostly for action gating.
 - **Decision:** Updated [src/storage.py](src/storage.py) and [src/simulation.py](src/simulation.py) to make Energy-at-Zero (0) fatal.
@@ -13,6 +18,11 @@
 - **Context:** User requested less frequent but more analytical observer reports.
 - **Decision:** Changed observer frequency to once every 5 ticks and added "Success" (Emergence) vs "Failure" (Roboticism) metrics.
 - **Reasoning:** A 5-tick window provides enough context for the LLM to identify patterns (robotic) or surprises (emergent) that a single-tick view misses, while reducing LLM overhead.
+
+### 2026-04-16 - Commercial Vision: Office Simulation
+- **Context:** Documented the long-term commercial potential of the Loka engine.
+- **Decision:** Identified "Office Simulation" as a primary use-case for predicting social dynamics and project roles based on "agent DNA" (personality).
+- **Reasoning:** The emergence of negotiation and work-life balance in the current berry-foraging simulation validates that character traits drive complex group outcomes, making it applicable to corporate environments.
 
 ### 2026-04-14 - Fixed Chronicle and Observer Logging
 - **Context:** The "Chronicles" tab was empty in the frontend, and the Observer LLM was failing to parse logs.

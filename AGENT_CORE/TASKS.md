@@ -48,6 +48,7 @@
 - [ ] **Phase 4: User Integration**
   - [ ] Avatar Creation & Control
   - [x] Observer Mode (5-tick Evaluation Loop with Success/Failure metrics)
+  - [x] Win Condition implementation (30 gold stop-tick)
   - [ ] Web/Desktop Interface
 
 - [ ] **Phase 5: Survival & Rest Mechanics Update**
@@ -66,3 +67,8 @@
 
 ## 🚧 Blockers
 - None. Fixed 2D chat bubble synchronization logic.
+
+## 📢 Community & Outreach
+- [x] Write LinkedIn Article about the project simulation and commercial potential ([linkedin_article.md](linkedin_article.md))
+- [x] Add post-launch reflection to MEMORIES.md
+

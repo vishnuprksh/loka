@@ -250,6 +250,9 @@ def tick() -> int:
     from .llm import call_llm
 
     world = STORAGE.get_world()
+    if world.get("game_over"):
+        return world["tick"]
+
     new_tick = world["tick"] + 1
     STORAGE.update_world(tick=new_tick)
 
@@ -321,21 +324,26 @@ def tick() -> int:
 
     # Relationship decay & Social normalization
     alive_agents = STORAGE.get_agents(alive_only=True)
+    for a in alive_agents:
+        # Check for winners (30 gold mark)
+        if a.get('money', 0) >= 30:
+            STORAGE.update_world(game_over=1, winner_id=a['id'])
+            STORAGE.add_chronicle(new_tick, f"🏆 {a['name'].upper()} HAS REACHED 30 GOLD AND WON THE GAME! The simulation has stopped.", "WINNER", a["id"])
+            # Broadcast victory memory
+            for s in alive_agents:
+                STORAGE.add_memory(s["id"], new_tick, f"🏆 {a['name']} has reached 30 gold and won the game!")
+            return new_tick
+
     if new_tick % 5 == 0:
         for a in alive_agents:
-            # Check for winners
-            if a.get('money', 0) >= 30:
-                STORAGE.add_chronicle(new_tick, f"🏆 {a['name']} HAS REACHED 30 GOLD AND WON THE GAME!", "WINNER", a["id"])
-
-    for a in alive_agents:
-        # Relationships decay slowly over time if no interaction (-1 every 10 ticks)
-        if new_tick % 10 == 0:
-            conn = STORAGE.get_conn()
-            with conn:
-                conn.execute(
-                    "UPDATE relationships SET score=MAX(0, score-1) WHERE agent_b=?", (a["id"],)
-                )
-            conn.close()
+            # Relationships decay slowly over time if no interaction (-1 every 10 ticks)
+            if new_tick % 10 == 0:
+                conn = STORAGE.get_conn()
+                with conn:
+                    conn.execute(
+                        "UPDATE relationships SET score=MAX(0, score-1) WHERE agent_b=?", (a["id"],)
+                    )
+                conn.close()
 
     # Tick summary log
     alive_agents = STORAGE.get_agents()
@@ -399,6 +407,8 @@ def get_state_dict() -> dict:
 
     return {
         "tick":        world["tick"],
+        "game_over":   bool(world.get("game_over", 0)),
+        "winner_id":   world.get("winner_id"),
         "report":      STORAGE.get_latest_report(),
         "berry_count": resource_state.get("berry", 0),  # backward-compat for frontend
         "resources":   resource_state,

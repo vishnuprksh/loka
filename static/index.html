@@ -692,6 +692,19 @@ function applyState(s) {
     document.getElementById('observer-text').innerText = s.report;
   }
   
+  if (s.game_over) {
+    document.getElementById('tick-display').textContent = `🏁 COMPLETED at Tick: ${s.tick}`;
+    document.getElementById('tick-display').style.color = 'var(--yellow)';
+    document.getElementById('tick-display').style.fontWeight = 'bold';
+    const winner = s.agents.find(a => a.id === s.winner_id);
+    if (winner) {
+      document.getElementById('observer-text').innerHTML = `<span style="color:var(--yellow); font-weight:bold; font-size:1.1rem">🏆 WINNER: ${winner.name.toUpperCase()} 🏆</span><br><br>` + document.getElementById('observer-text').innerText;
+    }
+  } else {
+    document.getElementById('tick-display').style.color = 'var(--muted)';
+    document.getElementById('tick-display').style.fontWeight = 'normal';
+  }
+
   // Tick down active bubbles
   activeBubbles.forEach(b => b.ticks--);
   activeBubbles = activeBubbles.filter(b => b.ticks > 0);

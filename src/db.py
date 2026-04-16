@@ -70,8 +70,10 @@ def init_db(env=None) -> None:
             );
 
             CREATE TABLE IF NOT EXISTS world (
-                id   INTEGER PRIMARY KEY DEFAULT 1,
-                tick INTEGER NOT NULL DEFAULT 0
+                id           INTEGER PRIMARY KEY DEFAULT 1,
+                tick         INTEGER NOT NULL DEFAULT 0,
+                game_over    INTEGER NOT NULL DEFAULT 0,
+                winner_id    TEXT
             );
 
             CREATE TABLE IF NOT EXISTS world_resources (

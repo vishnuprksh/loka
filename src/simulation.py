@@ -382,18 +382,19 @@ def create_agent(name: str, greed: float, sociability: float, curiosity: float,
 
 def seed_default_agents() -> None:
     """Populate the world with starter agents if empty."""
+    from .config import STARTING_GOLD
     if not STORAGE.get_agents():
         # Ara (Yellow - Performer): Sociable, Enthusiastic
-        create_agent("Ara",  greed=0.3, sociability=0.9, curiosity=0.6, empathy=0.7, assertiveness=0.6, path="Performer")
+        create_agent("Ara",  greed=0.3, sociability=0.9, curiosity=0.6, empathy=0.7, assertiveness=0.6, path="Performer", money=STARTING_GOLD)
         
         # Dax (Blue - Scholar): Precise, Analytical
-        create_agent("Dax",  greed=0.5, sociability=0.3, curiosity=0.9, empathy=0.3, assertiveness=0.4, path="Scholar")
+        create_agent("Dax",  greed=0.5, sociability=0.3, curiosity=0.9, empathy=0.3, assertiveness=0.4, path="Scholar", money=STARTING_GOLD)
         
         # Mira (Green - Commoner): Reliable, Harmonious
-        create_agent("Mira", greed=0.2, sociability=0.8, curiosity=0.4, empathy=0.9, assertiveness=0.3, path="Commoner")
+        create_agent("Mira", greed=0.2, sociability=0.8, curiosity=0.4, empathy=0.9, assertiveness=0.3, path="Commoner", money=STARTING_GOLD)
         
         # Kael (Red - Leader): Decisive, Result-oriented
-        create_agent("Kael", greed=0.9, sociability=0.5, curiosity=0.6, empathy=0.2, assertiveness=0.9, path="Leader")
+        create_agent("Kael", greed=0.9, sociability=0.5, curiosity=0.6, empathy=0.2, assertiveness=0.9, path="Leader", money=STARTING_GOLD)
 
 
 # ------------------------------------------------------------------

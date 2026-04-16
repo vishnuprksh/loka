@@ -43,7 +43,12 @@
   - [x] Implement Emergency Help logic (TALK when stats < Danger Threshold)
   - [x] **Implemented Randomized Fair Foraging (Shuffled action application)**
   - [ ] Relationship Mapping
-  - [ ] Resource/Economic System
+  - [x] Resource/Economic System (Gold mechanics)
+  - [ ] **Gold Objectives Update**
+    - [x] Set win condition to 30 gold
+    - [x] Update agent prompts with gold starting amount and objective
+    - [x] Document strategic shift in MEMORIES.md
+  - [ ] Multi-Agent Economy (Trade/Gold exchanges)
 
 - [ ] **Phase 4: User Integration**
   - [ ] Avatar Creation & Control

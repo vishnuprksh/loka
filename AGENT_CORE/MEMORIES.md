@@ -1,10 +1,16 @@
 # Strategic Memories
-### 2026-04-16 - Win Condition and Game Halt
-- **Context:** The simulation was previously an endless loop where agents just survived until death.
-- **Decision:** Implemented a "Win Condition" at 30 gold. When an agent reaches this mark, `game_over` is set to 1 in the database, a global announcement is made in the Chronicle and Agent Memories, and the backend `tick()` function returns early without processing further logic.
-- **Reasoning:** Adding a clear objective (30 Gold) transform the survival sandbox into a competitive/cooperative game with a defined end-state, allowing for "Success" metrics and a sense of closure for the observer.
 
-### 2026-04-16 - Mandatory Sleep and Resting Buff
+### 2026-04-16 - UI Visibility Adjustment (Agent Thought)
+- **Context:** Agent thoughts were being truncated or not fully visible due to small font and CSS constraints.
+- **Decision:** Increased `.agent-thought` font size to `0.8rem` and removed `min-height` in [static/index.html](static/index.html).
+- **Reasoning:** Agent inner monologue is critical for the "Observer" experience. Removing height constraints allows the container to expand naturally.
+
+### 2026-04-16 - Win Condition and Gold Objectives
+- **Context:** The user clarified that there are 4 agents, each starting with 10 gold, and the goal is to reach 30 gold.
+- **Decision:** Updated `WIN_CONDITION_GOLD` to 30 and added `STARTING_GOLD` = 10 to [src/config.py](src/config.py). Updated `GAME_RULES` prompt to explicitly mention the starting amount. Ensured starter agents are seeded with this amount in [src/simulation.py](src/simulation.py).
+- **Reasoning:** Providing agents with their starting context and a clear "finish line" encourages more strategic behavior regarding gold accumulation and social exchanges.
+
+### 2026-04-16 - mandatory Sleep and Resting Buff
 - **Context:** Energy was previously a non-lethal stat used mostly for action gating.
 - **Decision:** Updated [src/storage.py](src/storage.py) and [src/simulation.py](src/simulation.py) to make Energy-at-Zero (0) fatal.
 - **Reasoning:** Elevation of Energy to a critical survival stat (like Hunger) forces better long-term planning and makes resting locations (Shelter/Fire Pit) strategically vital. Hunger also pauses while resting to provide more survival breathing room.

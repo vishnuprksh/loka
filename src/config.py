@@ -25,10 +25,11 @@ ENERGY_GAIN_ANYWHERE = 2
 
 # Game Rules & Objectives
 WIN_CONDITION_GOLD = 30
+STARTING_GOLD = 10
 INHERITANCE_ENABLED = True
 
 # Behavioral Framework (Descriptive, not Prescriptive)
-GAME_RULES = f"THE GAME: Your absolute goal is to accumulate {WIN_CONDITION_GOLD} Gold coins. Survival is the prerequisite. If you die, your wealth is equally distributed among the survivors. There are no other rules. You define your own morality and strategy."
+GAME_RULES = f"THE GAME: Your absolute goal is to accumulate {WIN_CONDITION_GOLD} Gold coins. You start with {STARTING_GOLD} Gold. Survival is the prerequisite. If you die, your wealth is equally distributed among the survivors. There are no other rules. You define your own morality and strategy."
 SOCIAL_STATUS_GUIDELINE = "Social Bar (Community) is your Loka Identity. 0-3 = ISOLATED, 4-6 = STABLE, 7-10 = INFLUENTIAL. This affects how others perceive your value as a trade partner or ally."
 REASONING_REINFORCEMENT = """Your 'thought' MUST follow this Strategic Planning Template:
 1. SITUATION: Analysis of your current stats, gold, and immediate surroundings.

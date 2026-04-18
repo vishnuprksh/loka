@@ -69,6 +69,13 @@
   - [ ] Update prompt schema and survival guidelines
   - [ ] Implement action conflict resolution (e.g., can't SLEEP and MOVE)
 
+- [ ] **Phase 6: Agent Self-Reflection & Learning**
+  - [x] Add `thought_history` column to agents table (last 3 thoughts stored as JSON)
+  - [x] Add `SELF_REFLECTION_PROMPT` to config (world-agnostic, agent-relative)
+  - [x] Extract recent thoughts in `_build_prompt()` and insert "YOUR RECENT DECISIONS" section
+  - [x] Maintain thought history in `update_agent()` when `last_thought` changes
+  - [ ] Validate agents recognize patterns and adapt based on recent decisions
+
 ---
 
 ## 🚧 Blockers

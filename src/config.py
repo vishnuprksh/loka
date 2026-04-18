@@ -36,3 +36,9 @@ REASONING_REINFORCEMENT = """Your 'thought' MUST follow this Strategic Planning 
 2. STRATEGY: Your long-term plan to reach 30 Gold (e.g., 'Monopolize resources', 'Build trade alliances', 'Wait for inheritance').
 3. EXECUTION: The specific steps you are taking in this tick to advance your strategy."""
 
+SELF_REFLECTION_PROMPT = """SELF-REFLECTION (Analyze your last 3 decisions):
+Looking at your RECENT DECISIONS below, what patterns do you notice?
+- Are you repeating the same action? Is it working?
+- What would you try differently based on YOUR experience?
+- Rate your recent approach: Is this path helping you survive?"""
+

@@ -18,7 +18,7 @@ from .config import (
     MAX_STAT_VALUE, HUNGER_THRESHOLD_LOW, ENERGY_THRESHOLD_LOW, DANGER_THRESHOLD,
     MEMORY_WINDOW_LIMIT, DEFAULT_TICK_INTERVAL, DEFAULT_BERRY_HUNGER,
     SOCIAL_STATUS_GUIDELINE, 
-    REASONING_REINFORCEMENT, GAME_RULES
+    REASONING_REINFORCEMENT, GAME_RULES, SELF_REFLECTION_PROMPT
 )
 
 TICK_INTERVAL = int(os.getenv("TICK_INTERVAL", str(DEFAULT_TICK_INTERVAL)))
@@ -158,6 +158,20 @@ STATS & SURVIVAL (MANDATORY):
     custom_info = agent.get("info", "")
     info_section = f"\n\n--- AGENT INFO ---\n{world_info}\n{custom_info}"
 
+    # Extract recent thoughts for self-reflection
+    thought_history = agent.get("thought_history", "[]")
+    try:
+        recent_thoughts = json.loads(thought_history)
+    except:
+        recent_thoughts = []
+
+    recent_decisions_text = ""
+    if recent_thoughts:
+        recent_decisions_text = "YOUR RECENT DECISIONS:\n"
+        for i, thought in enumerate(recent_thoughts[-3:], 1):  # Last 3
+            recent_decisions_text += f"  {i}. {thought}\n"
+        recent_decisions_text += f"\n{SELF_REFLECTION_PROMPT}\n\n"
+
     return f"""You are {agent['name']}, an autonomous agent in {ENV.name}.
 
 {traits_context}
@@ -182,6 +196,8 @@ CONVERSATION CONTEXT:
 
 RECENT MEMORIES (Most recent at top):
 {mem_text}
+
+{recent_decisions_text}
 
 MISSION: Survive and build a society. {path_instruction}{economy_instruction}{mandatory_reply_instruction}{social_urge}{emergency_instruction}
 

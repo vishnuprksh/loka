@@ -1,5 +1,11 @@
 # Strategic Memories
 
+### 2026-04-18 - World-Independent Agent Self-Reflection Architecture
+- **Context:** Agents had no mechanism to learn from past decisions or recognize behavioral patterns. Previous attempts to add reflection were world-dependent (e.g., "Did you achieve 30 gold?"), breaking portability.
+- **Decision:** Implemented minimal forced self-reflection via recent thought history. Added `thought_history` JSON column to agents table (stores last 3 thoughts). Prompt now includes "YOUR RECENT DECISIONS" section with world-agnostic reflection questions: "Are you repeating? Is this working? What would you try differently?"
+- **Reasoning:** This architecture is world-independent—agents can be dropped into any environment without hardcoded goal references. Self-reflection is purely agent-relative ("Did YOUR approach work?"), not system-measured. Thought history tracks memory automatically via existing `last_thought` persistence, requiring no new game logic.
+- **Files Changed:** `src/db.py` (added column), `src/config.py` (SELF_REFLECTION_PROMPT), `src/simulation.py` (extract/display thoughts), `src/storage.py` (maintain history).
+
 ### 2026-04-16 - UI Visibility Adjustment (Agent Thought)
 - **Context:** Agent thoughts were being truncated or not fully visible due to small font and CSS constraints.
 - **Decision:** Increased `.agent-thought` font size to `0.8rem` and removed `min-height` in [static/index.html](static/index.html).

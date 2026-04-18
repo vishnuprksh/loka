@@ -40,7 +40,8 @@ def init_db(env=None) -> None:
                 path         TEXT    NOT NULL DEFAULT 'survivor',
                 info         TEXT    NOT NULL DEFAULT '',
                 created_tick INTEGER NOT NULL DEFAULT 0,
-                last_thought TEXT    NOT NULL DEFAULT ''
+                last_thought TEXT    NOT NULL DEFAULT '',
+                thought_history TEXT    NOT NULL DEFAULT '[]'
             );
 
             CREATE TABLE IF NOT EXISTS relationships (

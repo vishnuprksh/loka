@@ -158,6 +158,23 @@ class SQLiteBackend(StorageBackend):
         fields.pop("community", None)
         if not fields:
             return
+        
+        # Maintain thought_history when updating last_thought
+        if "last_thought" in fields and fields["last_thought"]:
+            conn = get_conn()
+            agent_row = conn.execute("SELECT thought_history FROM agents WHERE id=?", (agent_id,)).fetchone()
+            conn.close()
+            
+            try:
+                import json
+                history = json.loads(agent_row["thought_history"] if agent_row else "[]")
+            except:
+                history = []
+            
+            history.append(fields["last_thought"][:100])  # Keep last 100 chars
+            history = history[-3:]  # Keep only last 3
+            fields["thought_history"] = json.dumps(history)
+        
         set_clause = ", ".join(f"{k}=?" for k in fields)
         values = list(fields.values()) + [agent_id]
         conn = get_conn()
